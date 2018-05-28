@@ -1,4 +1,9 @@
 var browserPos = null;
+var sortableSourceIndex = null;
+var sortableSourceList = null;
+var sortableDestinationIndex = null;
+var sortableDestinationList = null;
+var sortableSourceListInProcess = null;
 
 function setFormValueOpenBrowser(url, mode, params) {
     var url = url + "&mode=" + mode + "&bparams=" + params;
@@ -72,7 +77,8 @@ function sortable_hideRecord(it, command) {
     new Ajax.Request(command);
     new Effect.Fade(it,
         { duration: 0.5,
-            afterFinish: sortable_hideRecordCallBack });
+          afterFinish: sortable_hideRecordCallBack
+        });
 }
 
 function sortable_hideRecordCallBack(obj) {
@@ -85,12 +91,16 @@ function sortable_hideRecordCallBack(obj) {
 
 function sortable_unlinkRecordCallBack(obj)
 {
-    $parentSortable = TYPO3.jQuery(obj).parents('.ui-sortable');
+    var $parentSortable = TYPO3.jQuery(obj).parents('.ui-sortable');
     obj.remove();
-    sortable_updateItemButtons($parentSortable[0], $parentSortable.sortable('toArray'))
+    sortable_updateItemButtons('#' + $parentSortable[0].id)
 }
 
-function sortable_unlinkRecord(pointer, id, elementPointer) {
+function sortable_unlinkRecord(pointer, id, elementPointer)
+{
+    var item = TYPO3.jQuery('#' + id)[0];
+    showInProgress(item);
+
     new TYPO3.jQuery.ajax({
         url: TYPO3.settings.ajaxUrls['templavoilaplus_record_unlink'],
         type: 'post',
@@ -106,6 +116,9 @@ function sortable_unlinkRecord(pointer, id, elementPointer) {
             new TYPO3.jQuery('#' + id).fadeTo('fast', 0.0, function() {
                 sortable_unlinkRecordCallBack(TYPO3.jQuery(this))
             });
+        },
+        error: function(result) {
+            showError(item);
         }
     });
 }
@@ -189,10 +202,8 @@ function sortable_stop(item, placeholder)
     var source = sortable_containers[sortableSourceList] + sortableSourceIndex;
     var destination = sortable_containers[sortableDestinationList] + sortableDestinationIndex;
 
-    TYPO3.jQuery('.tpm-titlebar', item)
-        .addClass("toYellow")
-        // Add isYellow if animation ends before ajax responded
-        .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).addClass("isYellow"); });
+    showInProgress(item);
+
     sortableSourceListInProcess = sortableSourceList;
 
     new TYPO3.jQuery.ajax({
@@ -205,13 +216,7 @@ function sortable_stop(item, placeholder)
             'destination': destination
         },
         success: function(result) {
-            // flash green
-            TYPO3.jQuery('.tpm-titlebar', item)
-                .off()
-                .addClass("flashGreen")
-                .removeClass("toYellow")
-                .removeClass("isYellow")
-                .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).removeClass("flashGreen"); });
+            showSuccess(item);
             sortable_updateItemButtons(sortableDestinationList);
             if (sortableSourceList != sortableDestinationList) {
                 sortable_updateItemButtons(sortableSourceList);
@@ -219,24 +224,17 @@ function sortable_stop(item, placeholder)
             }
         },
         error: function(result) {
-            // flash red
             TYPO3.jQuery(sortableSourceListInProcess).sortable( "cancel" );
-            TYPO3.jQuery('.tpm-titlebar', item)
-                .off()
-                .addClass("flashRed")
-                .removeClass("toYellow")
-                .removeClass("isYellow")
-                .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).removeClass("flashRed"); });
+            showError(item);
         },
         complete: function(result) {
             sortableSourceListInProcess = null;
+            sortableSourceIndex = null;
+            sortableSourceList = null;
+            sortableDestinationIndex = null;
+            sortableDestinationList = null;
         }
     });
-
-    sortableSourceIndex = null;
-    sortableSourceList = null;
-    sortableDestinationIndex = null;
-    sortableDestinationList = null;
 }
 
 function sortable_receive(list)
@@ -274,4 +272,30 @@ function tv_createSortable(container, connectWith)
         placeholder: 'drag-placeholder'
     });
     $sortingContainer.disableSelection();
+}
+
+function showInProgress(item)
+{
+    TYPO3.jQuery('.tpm-titlebar', item)
+        .addClass("toYellow");
+}
+
+function showSuccess(item)
+{
+    // flash green
+    TYPO3.jQuery('.tpm-titlebar', item)
+        .off()
+        .addClass("flashGreen")
+        .removeClass("toYellow")
+        .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).removeClass("flashGreen"); });
+}
+
+// flash red
+function showError(item)
+{
+    TYPO3.jQuery('.tpm-titlebar', item)
+        .off()
+        .addClass("flashRed")
+        .removeClass("toYellow")
+        .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).removeClass("flashRed"); });
 }
