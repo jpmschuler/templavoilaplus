@@ -1351,10 +1351,9 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
 
             case 'tt_content':
                 $this->currentElementParentPointer = $parentPointer;
-
                 $elementTitlebarClass = 't3-page-ce-header '
                     . ($elementBelongsToCurrentPage ? 'tpm-titlebar' : 'tpm-titlebar-fromOtherPage');
-                $elementClass .= ' t3-page-ce tpm-content-element tpm-ctype-' . $contentTreeArr['el']['CType'];
+                $elementClass .= ' t3-page-ce tpm-content-element tpm-ctype-' . $contentTreeArr['el']['CType'].' tpm-layout-'. $contentTreeArr['el']['layout'];
 
                 if ($contentTreeArr['el']['isHidden']) {
                     $elementClass .= ' tpm-hidden t3-page-ce-hidden';
