@@ -109,9 +109,8 @@ if ($_EXTCONF['enable']['selectDataStructure']) {
     );
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',
-        'tx_templavoilaplus_flex',
-        '',
-        'after:title'
+        '--div--;LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tab.tx_templavoilaplus_flex,tx_templavoilaplus_flex',
+        ''
     );
 
     if ($GLOBALS['TCA']['pages']['ctrl']['requestUpdate'] !== '') {
@@ -134,9 +133,8 @@ if ($_EXTCONF['enable']['selectDataStructure']) {
         );
         \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
             'pages',
-            'tx_templavoilaplus_flex',
-            '',
-            'after:title'
+            '--div--;LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tab.tx_templavoilaplus_flex,tx_templavoilaplus_flex',
+            ''
         );
     } else {
         \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
@@ -147,9 +145,8 @@ if ($_EXTCONF['enable']['selectDataStructure']) {
         );
         \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
             'pages',
-            'tx_templavoilaplus_flex',
-            '',
-            'after:title'
+            '--div--;LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tab.tx_templavoilaplus_flex,tx_templavoilaplus_flex',
+            ''
         );
     }
 
