@@ -105,6 +105,9 @@
 			<trans-unit id="pages.palettes.storage" xml:space="preserve">
 				<source>General Record Storage Page</source>
 			</trans-unit>
+			<trans-unit id="pages.tab.tx_templavoilaplus_flex" xml:space="preserve">
+				<source>TemplaVoilà! Plus Content</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
