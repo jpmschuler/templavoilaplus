@@ -299,7 +299,7 @@ class TemplaVoilaPlus8UpdateController extends StepUpdateController
             $ds['countUsage'] = 0;
             $ds['valid'] = false;
 
-            if ($ds['xml'] !== '') {
+            if ($ds['xml'] !== null) {
                 $result = simplexml_load_string($ds['xml']);
                 if ($result === false) {
                     $errors = libxml_get_errors();
