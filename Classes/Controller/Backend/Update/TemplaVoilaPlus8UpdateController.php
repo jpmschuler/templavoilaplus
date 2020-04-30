@@ -210,6 +210,8 @@ class TemplaVoilaPlus8UpdateController extends StepUpdateController
                     'icon' => '',
                 ];
 
+                die($systemPath . $dataStructure['path']);
+
                 if (is_file($systemPath . $dataStructure['path']) && is_readable($systemPath . $dataStructure['path'])) {
                     $dataStructure['xml'] = file_get_contents($systemPath . $dataStructure['path']);
                 }
