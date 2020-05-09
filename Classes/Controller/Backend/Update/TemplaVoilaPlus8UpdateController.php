@@ -210,6 +210,8 @@ class TemplaVoilaPlus8UpdateController extends StepUpdateController
                     'icon' => '',
                 ];
 
+                die($systemPath . $dataStructure['path']);
+
                 if (is_file($systemPath . $dataStructure['path']) && is_readable($systemPath . $dataStructure['path'])) {
                     $dataStructure['xml'] = file_get_contents($systemPath . $dataStructure['path']);
                 }
@@ -299,7 +301,7 @@ class TemplaVoilaPlus8UpdateController extends StepUpdateController
             $ds['countUsage'] = 0;
             $ds['valid'] = false;
 
-            if ($ds['xml'] !== '') {
+            if ($ds['xml'] !== null) {
                 $result = simplexml_load_string($ds['xml']);
                 if ($result === false) {
                     $errors = libxml_get_errors();
@@ -377,7 +379,7 @@ class TemplaVoilaPlus8UpdateController extends StepUpdateController
 
         $result = $queryBuilder
             ->count('uid')
-            ->addSelect('uid', 'tx_templavoilaplus_to', 'tx_templavoilaplus_next_to')
+            ->addSelect('tx_templavoilaplus_to', 'tx_templavoilaplus_next_to')
             ->from('pages')
             ->where(
                 $queryBuilder->expr()->neq('tx_templavoilaplus_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR))
@@ -416,7 +418,7 @@ class TemplaVoilaPlus8UpdateController extends StepUpdateController
 
         $result = $queryBuilder
             ->count('uid')
-            ->addSelect('uid', 'tx_templavoilaplus_to')
+            ->addSelect('tx_templavoilaplus_to')
             ->from('tt_content')
             ->where(
                 $queryBuilder->expr()->neq('tx_templavoilaplus_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR))
