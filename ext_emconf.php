@@ -1,21 +1,20 @@
 <?php
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'TemplaVoilà! Plus',
+    'title' => 'TemplaVoilà! Plus - Classic Edition',
     'description' => 'Point-and-click, popular and easy template engine for TYPO3. Replacement for old TemplaVoilà!.',
     'category' => 'misc',
-    'version' => '7.3.3',
-    'state' => 'stable',
+    'version' => '7.3.3w1',
+    'state' => 'excludeFromUpdates',	// alpha
     'uploadfolder' => 0,
     'createDirs' => 'uploads/tx_templavoilaplus/',
     'clearcacheonload' => 1,
-    'author' => 'Alexander Opitz',
+    'author' => 'Alexander Opitz, A. w010 Wolski',
     'author_email' => 'opitz@extrameile-gehen.de',
     'author_company' => 'Extrameile GmbH',
     'constraints' => [
         'depends' => [
-            'php' => '5.5.0-7.3.99',
-            'typo3' => '7.6.0-9.5.99',
-            'install' => '7.6.0-9.5.99',
+            'php' => '7.2.0-7.3.99',
+            'typo3' => '10.4.0-10.4.99',
         ],
         'conflicts' => [
             'templavoila' => '',

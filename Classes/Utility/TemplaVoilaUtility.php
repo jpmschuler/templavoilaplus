@@ -31,7 +31,7 @@ final class TemplaVoilaUtility
 {
 
     /**
-     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     * @return \TYPO3\CMS\Typo3DbLegacy\Database\DatabaseConnection
      */
     public static function getDatabaseConnection()
     {
@@ -57,14 +57,14 @@ final class TemplaVoilaUtility
     }
 
     /**
-     * @return \TYPO3\CMS\Lang\LanguageService
+     * @return \TYPO3\CMS\Core\Localization\LanguageService
      */
     public static function getLanguageService()
     {
         if (isset($GLOBALS['LANG'])) {
             return $GLOBALS['LANG'];
         } else {
-            return GeneralUtility::makeInstance(\TYPO3\CMS\Lang\LanguageService::class);
+            return GeneralUtility::makeInstance(\TYPO3\CMS\Core\Localization\LanguageService::class);
         }
     }
 
@@ -73,11 +73,11 @@ final class TemplaVoilaUtility
      */
     public static function getCoreLangPath()
     {
-        if (version_compare(TYPO3_version, '8.5.0', '>=')) {
-            return 'lang/Resources/Private/Language/';
-        } else {
+        // if (version_compare(TYPO3_version, '8.5.0', '>=')) {
+            return 'core/Resources/Private/Language/';
+        /*} else {
             return 'lang/';
-        }
+        }*/
     }
     /**
      * Returns an array of available languages (to use for FlexForms)
@@ -425,13 +425,13 @@ final class TemplaVoilaUtility
         if (is_array($dataStructArray['sheets'])) {
             $out = ['sheets' => []];
             foreach ($dataStructArray['sheets'] as $sheetId => $sDat) {
-                list($ds, $aS) = self::resolveSheetDefInDS($dataStructArray, $sheetId);
+                [$ds, $aS] = self::resolveSheetDefInDS($dataStructArray, $sheetId);
                 if ($sheetId == $aS) {
                     $out['sheets'][$aS] = $ds;
                 }
             }
         } else {
-            list($ds) = self::resolveSheetDefInDS($dataStructArray);
+            [$ds] = self::resolveSheetDefInDS($dataStructArray);
             $out = ['sheets' => ['sDEF' => $ds]];
         }
         return $out;

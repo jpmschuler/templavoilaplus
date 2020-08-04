@@ -14,6 +14,7 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Ppi\TemplaVoilaPlus\Controller\BackendLayoutController;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -36,7 +37,7 @@ class Wizards implements SingletonInterface
     protected $apiObj;
 
     /**
-     * @var \tx_templavoilaplus_module1
+     * @var BackendLayoutController
      */
     public $pObj; // A pointer to the parent object, that is the templavoila page module script. Set by calling the method init() of this class.
 
@@ -51,7 +52,7 @@ class Wizards implements SingletonInterface
      * Initializes the wizards object. The calling class must make sure that the right locallang files are already loaded.
      * This method is usually called by the templavoila page module.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the parent object ($this)
+     * @param BackendLayoutController $pObj Reference to the parent object ($this)
      *
      * @return void
      */

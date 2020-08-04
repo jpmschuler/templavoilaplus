@@ -70,7 +70,7 @@ class NewContentElementController extends \TYPO3\CMS\Backend\Controller\ContentE
             // Hook for manipulating wizardItems, wrapper, onClickEvent etc.
             if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms']['db_new_content_el']['wizardItemsHook'])) {
                 foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms']['db_new_content_el']['wizardItemsHook'] as $classData) {
-                    $hookObject = GeneralUtility::getUserObj($classData);
+                    $hookObject = GeneralUtility::makeInstance($classData);
                     if (!$hookObject instanceof NewContentElementWizardHookInterface) {
                         throw new \UnexpectedValueException(
                             $classData . ' must implement interface ' . NewContentElementWizardHookInterface::class,
