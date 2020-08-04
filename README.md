@@ -1,5 +1,19 @@
-TemplaVoilà! Plus
-=================
+TemplaVoilà! Plus - Classic Edition
+===================================
+
+
+
+
+
+
+
+
+
+
+
+Original TV+ Readme:
+----------
+
 
 [![license](https://img.shields.io/github/license/pluspol-interactive/templavoilaplus.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html)
 [![version](https://img.shields.io/badge/TER_version-7.3.5-green.svg)](https://extensions.typo3.org/extension/templavoilaplus)

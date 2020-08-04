@@ -14,6 +14,8 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Ppi\TemplaVoilaPlus\Compat\Template\ModuleTemplate;
+use Ppi\TemplaVoilaPlus\Controller\BackendLayoutController;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -33,7 +35,7 @@ class Sidebar implements SingletonInterface
     /**
      * A pointer to the parent object, that is the templavoila page module script. Set by calling the method init() of this class.
      *
-     * @var \tx_templavoilaplus_module1
+     * @var BackendLayoutController
      */
     public $pObj;
 
@@ -52,7 +54,7 @@ class Sidebar implements SingletonInterface
     public $sideBarItems = array();
 
     /**
-     * @var TYPO3\CMS\Backend\Template\ModuleTemplate
+     * @var ModuleTemplate
      */
     protected $moduleTemplate;
 
@@ -60,7 +62,7 @@ class Sidebar implements SingletonInterface
      * Initializes the side bar object. The calling class must make sure that the right locallang files are already loaded.
      * This method is usually called by the templavoila page module.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the parent object ($this)
+     * @param BackendLayoutController $pObj Reference to the parent object ($this)
      *
      * @return void
      */
@@ -201,21 +203,20 @@ class Sidebar implements SingletonInterface
      * as a header above the content zones while editing the content of a page. This function renders those fields.
      * The fields to be displayed are defined in the page's datastructure.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the parent object ($this)
+     * @param BackendLayoutController $pObj Reference to the parent object ($this)
      *
      * @return string HTML output
      * @access private
      */
     public function renderItem_headerFields($pObj)
     {
-        global $TCA;
 
         $output = '';
         if ($pObj->rootElementTable != 'pages') {
             return '';
         }
 
-        $conf = $TCA['pages']['columns']['tx_templavoilaplus_flex']['config'];
+        $conf = $GLOBALS['TCA']['pages']['columns']['tx_templavoilaplus_flex']['config'];
 
         $dataStructureArr = TemplaVoilaUtility::getFlexFormDS($conf, $pObj->rootElementRecord, 'pages');
 
@@ -227,7 +228,7 @@ class Sidebar implements SingletonInterface
                 $headerFields = array();
 
                 foreach ($headerTablesAndFieldNames as $tableAndFieldName) {
-                    list ($table, $field) = explode('.', $tableAndFieldName);
+                    [$table, $field] = explode('.', $tableAndFieldName);
                     $fieldNames[$table][] = $field;
                     $headerFields[] = array(
                         'table' => $table,
@@ -267,7 +268,7 @@ class Sidebar implements SingletonInterface
     /**
      * Renders the versioning sidebar item. Basically this is a copy from the template class.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the page object (the templavoila page module)
+     * @param BackendLayoutController $pObj Reference to the page object (the templavoila page module)
      *
      * @return string HTML output
      */
@@ -311,7 +312,7 @@ class Sidebar implements SingletonInterface
     /**
      * Renders the "advanced functions" sidebar item.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the page object (the templavoila page module)
+     * @param BackendLayoutController $pObj Reference to the page object (the templavoila page module)
      *
      * @return string HTML output
      */

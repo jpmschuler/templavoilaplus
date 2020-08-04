@@ -15,9 +15,12 @@ namespace Ppi\TemplaVoilaPlus\Domain\Repository;
  */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 
+use Ppi\TemplaVoilaPlus\Service\ConfigurationService;
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
 
 /**
@@ -44,14 +47,14 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
     public function getDatastructureByUidOrFilename($uidOrFile)
     {
         if ((int)$uidOrFile > 0) {
-            $className = 'Ppi\\TemplaVoilaPlus\Domain\\Model\\DataStructure';
+            $className = \Ppi\TemplaVoilaPlus\Domain\Model\DataStructure::class;
         } else {
             if (StringUtility::beginsWith($uidOrFile, 'FILE:')) {
                 $uidOrFile = substr($uidOrFile, 5);
             }
             if (($staticKey = $this->validateStaticDS($uidOrFile)) !== false) {
                 $uidOrFile = $staticKey;
-                $className = 'Ppi\\TemplaVoilaPlus\Domain\\Model\\StaticDataStructure';
+                $className = \Ppi\TemplaVoilaPlus\Domain\Model\StaticDataStructure::class;
             } else {
                 throw new \InvalidArgumentException(
                     'Argument was supposed to be either a uid or a filename',
@@ -243,11 +246,12 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
     /**
      * @return boolean
      */
-    protected function isStaticDsEnabled()
+    protected static function isStaticDsEnabled()
     {
-        $extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
-
-        return $extConf['staticDS.']['enable'];
+        $configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
+        return true;
+        // TODO: add this method
+        return $configurationService->isStaticDataStructureEnabled();
     }
 
     /**
@@ -257,9 +261,8 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
     {
         $config = array();
         if (!self::$staticDsInitComplete) {
-            $extConfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
-            if ($extConfig['staticDS.']['enable']) {
-                self::readStaticDsFilesIntoArray($extConfig);
+            if (self::isStaticDsEnabled()) {
+                self::readStaticDsFilesIntoArray();
             }
             self::$staticDsInitComplete = true;
         }
@@ -319,34 +322,38 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
 
 
     /**
-     * @param array $conf
+     * @return array
      */
-    protected static function readStaticDsFilesIntoArray($conf)
+    protected static function readStaticDsFilesIntoArray()
     {
-        $paths = array_unique(array('fce' => $conf['staticDS.']['path_fce'], 'page' => $conf['staticDS.']['path_page']));
-        foreach ($paths as $type => $path) {
-            $absolutePath = GeneralUtility::getFileAbsFileName($path);
-            $files = GeneralUtility::getFilesInDir($absolutePath, 'xml', true);
-            // if all files are in the same folder, don't resolve the scope by path type
-            if (count($paths) == 1) {
-                $type = false;
-            }
+
+        $systemPath = Environment::getPublicPath();
+        $systemPath .= '/';
+
+        $configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
+        
+        // TODO: finish
+        //$dataStructurePlaces = $configurationService->getDataStructurePlaces();
+        
+	    $dataStructurePlaces = [
+	        'page' => 'typo3conf/templates/ds/page/',
+	        'fce' => 'typo3conf/templates/ds/fce/',
+	    ];
+
+        foreach ($dataStructurePlaces as $scope => $dataStructurePlace) {
+            $files = GeneralUtility::getFilesInDir($systemPath . $dataStructurePlace, 'xml', true);
+
             foreach ($files as $filePath) {
                 $staticDataStructure = array();
                 $pathInfo = pathinfo($filePath);
 
                 $staticDataStructure['title'] = $pathInfo['filename'];
-                $staticDataStructure['path'] = substr($filePath, strlen(PATH_site));
+                $staticDataStructure['path'] = substr($filePath, strlen($systemPath));
                 $iconPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '.gif';
                 if (file_exists($iconPath)) {
-                    $staticDataStructure['icon'] = substr($iconPath, strlen(PATH_site));
+                    $staticDataStructure['icon'] = substr($iconPath, strlen($systemPath));
                 }
-
-                if (($type !== false && $type === 'fce') || strpos($pathInfo['filename'], '(fce)') !== false) {
-                    $staticDataStructure['scope'] = \Ppi\TemplaVoilaPlus\Domain\Model\AbstractDataStructure::SCOPE_FCE;
-                } else {
-                    $staticDataStructure['scope'] = \Ppi\TemplaVoilaPlus\Domain\Model\AbstractDataStructure::SCOPE_PAGE;
-                }
+                $staticDataStructure['scope'] = $scope;
 
                 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures'][] = $staticDataStructure;
             }

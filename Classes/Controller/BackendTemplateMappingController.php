@@ -14,6 +14,7 @@ namespace Ppi\TemplaVoilaPlus\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Ppi\TemplaVoilaPlus\Compat\Template\ModuleTemplate;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
@@ -35,7 +36,7 @@ $GLOBALS['LANG']->includeLLFile(
  * @author Kasper Skaarhoj <kasperYYYY@typo3.com>
  * @co-author Robert Lemke <robert@typo3.org>
  */
-class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
+class BackendTemplateMappingController
 {
     /**
      * @var string
@@ -264,7 +265,8 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
     {
         parent::init();
 
-        $this->moduleTemplate = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Template\ModuleTemplate::class);
+        /** @var ModuleTemplate moduleTemplate */
+        $this->moduleTemplate = GeneralUtility::makeInstance(ModuleTemplate::class);
         $this->iconFactory = $this->moduleTemplate->getIconFactory();
         $this->buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
 
@@ -1598,7 +1600,7 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
                             // Working on Header and Body of HTML source:
 
                             // -- Processing the header editing --
-                            list($editContent, $currentHeaderMappingInfo) = $this->renderTO_editProcessing($dataStruct, $row, $theFile, 1);
+                            [$editContent, $currentHeaderMappingInfo] = $this->renderTO_editProcessing($dataStruct, $row, $theFile, 1);
 
                             // Determine if DS is a template record and if it is a page template:
                             $showBodyTag = !is_array($DS_row) || $DS_row['scope'] == 1 ? true : false;
@@ -1624,7 +1626,7 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
                             ];
 
                             // -- Processing the body editing --
-                            list($editContent, $currentMappingInfo) = $this->renderTO_editProcessing($dataStruct, $row, $theFile, 0);
+                            [$editContent, $currentMappingInfo] = $this->renderTO_editProcessing($dataStruct, $row, $theFile, 0);
 
                             $bodyContent =
                                 '<!-- Data Structure mapping table: -->'
@@ -2001,7 +2003,7 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
         // Get attributes of the extracted content:
         $contentFromPath = $this->markupObj->splitByPath($fileContent, $path); // ,'td#content table[1] tr[1]','td#content table[1]','map#cdf / INNER','td#content table[2] tr[1] td[1] table[1] tr[4] td.bckgd1[2] table[1] tr[1] td[1] table[1] tr[1] td.bold1px[1] img[1] / RANGE:img[2]'
         $firstTag = $this->markupObj->htmlParse->getFirstTag($contentFromPath[1]);
-        list($attrDat) = $this->markupObj->htmlParse->get_tag_attributes($firstTag, 1);
+        [$attrDat] = $this->markupObj->htmlParse->get_tag_attributes($firstTag, 1);
 
         // Make options:
         $pathLevels = $this->markupObj->splitPath($path);
@@ -2016,7 +2018,7 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
             $optDat = array_reverse($optDat);
         }
 
-        list($parentElement, $sameLevelElements) = $this->getRangeParameters($lastEl, $this->markupObj->elParentLevel);
+        [$parentElement, $sameLevelElements] = $this->getRangeParameters($lastEl, $this->markupObj->elParentLevel);
         if (is_array($sameLevelElements)) {
             $startFound = 0;
             foreach ($sameLevelElements as $rEl) {
@@ -2276,7 +2278,7 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
                                 }
 
                                 // Render HTML path:
-                                list($pI) = $this->markupObj->splitPath($currentMappingInfo[$key]['MAP_EL']);
+                                [$pI] = $this->markupObj->splitPath($currentMappingInfo[$key]['MAP_EL']);
 
                                 $okTitle = htmlspecialchars($cF ? sprintf(TemplaVoilaUtility::getLanguageService()->getLL('displayDSContentFound'), strlen($contentSplittedByMapping['cArray'][$key])) . ($multilineTooltips ? ':' . chr(10) . chr(10) . $cF : '') : TemplaVoilaUtility::getLanguageService()->getLL('displayDSContentEmpty'));
 
@@ -2331,7 +2333,7 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
                                 // Create mapping options:
                                 $opt = [];
                                 foreach ($optDat as $k => $v) {
-                                    list($pI) = $this->markupObj->splitPath($k);
+                                    [$pI] = $this->markupObj->splitPath($k);
 
                                     if (($value['type'] == 'attr' && $pI['modifier'] == 'ATTR') || ($value['type'] != 'attr' && $pI['modifier'] != 'ATTR')) {
                                         if ((!$this->markupObj->tags[$lastLevel['el']]['single'] || $pI['modifier'] != 'INNER') &&
@@ -2415,7 +2417,7 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
                     }
 
                     // Getting editing row, if applicable:
-                    list($addEditRows, $placeBefore) = $this->dsEdit->drawDataStructureMap_editItem($formPrefix, $key, $value, $level, $rowCells);
+                    [$addEditRows, $placeBefore] = $this->dsEdit->drawDataStructureMap_editItem($formPrefix, $key, $value, $level, $rowCells);
 
                     // Add edit-row if found and destined to be set BEFORE:
                     if ($addEditRows && $placeBefore) {

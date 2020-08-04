@@ -294,26 +294,23 @@ class StaticDataStructuresHandler
         // Check for alternative storage folder
         $field = $params['table'] == 'pages' ? 'uid' : 'pid';
 
-        $modTSConfig = BackendUtility::getModTSconfig($params['row'][$field], 'tx_templavoilaplus.storagePid');
-        $modTSConfigDeprecated = BackendUtility::getModTSconfig($params['row'][$field], 'tx_templavoila.storagePid');
+        // $modTSConfig = BackendUtility::getModTSconfig($params['row'][$field], 'tx_templavoilaplus.storagePid');
+	    $id = (int)GeneralUtility::_GP('id');
+        $pageTsConfig = BackendUtility::getPagesTSconfig($id);
+	    $modSharedTSconfig['properties'] = $pageTsConfig['mod.']['SHARED.'];
+        $modTSConfig['properties'] = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.'];
 
         if (is_array($modTSConfig) && MathUtility::canBeInterpretedAsInteger($modTSConfig['value'])) {
             $storagePid = (int)$modTSConfig['value'];
-        } elseif (is_array($modTSConfigDeprecated)
-            && MathUtility::canBeInterpretedAsInteger($modTSConfigDeprecated['value'])
-        ) {
-            GeneralUtility::deprecationLog(
-                'TemplaVoila Plus: tx_templavoila.storagePid is deprecated. Use tx_templavoilaplus.storagePid instead.'
-            );
-            $storagePid = (int)$modTSConfigDeprecated['value'];
         } else {
             // @TODO Deprecate this part, configuration in pageTS should be enough
             $rootLine = $this->BEgetRootLine($params['row'][$field], '', true);
             foreach ($rootLine as $rC) {
                 if (!empty($rC['storage_pid'])) {
-                    GeneralUtility::deprecationLog(
+                    trigger_error(
                         'TemplaVoila Plus: The field storage_pid is deprecated.'
-                        . ' Instead use tx_templavoilaplus.storagePid in page TypoScript.'
+                        . ' Instead use tx_templavoilaplus.storagePid in page TypoScript.',
+	                    E_USER_DEPRECATED
                     );
                     $storagePid = (int)$rC['storage_pid'];
                     break;
@@ -381,7 +378,7 @@ class StaticDataStructuresHandler
     protected function getPageForRootline($uid, $clause, $workspaceOL)
     {
         $db = $this->getDatabaseConnection();
-        $res = $db->exec_SELECTquery('pid,uid,storage_pid,t3ver_oid,t3ver_wsid', 'pages', 'uid=' . (int)$uid . ' ' . BackendUtility::deleteClause('pages') . ' ' . $clause);
+        $res = $db->exec_SELECTquery('pid,uid,storage_pid,t3ver_oid,t3ver_wsid', 'pages', 'uid=' . (int)$uid . ' ' . ' AND NOT deleted' . ' ' . $clause);
         $row = $db->sql_fetch_assoc($res);
         if ($row) {
             $newLocation = false;
@@ -434,7 +431,8 @@ class StaticDataStructuresHandler
     protected function getRemoveItems($params, $field)
     {
         $pid = $params['row'][$params['table'] == 'pages' ? 'uid' : 'pid'];
-        $modTSConfig = BackendUtility::getModTSconfig($pid, 'TCEFORM.' . $params['table'] . '.' . $field . '.removeItems');
+        $pageTSConfig = BackendUtility::getPagesTSconfig($pid);
+        $modTSConfig = $pageTSConfig['TCEFORM.'][$params['table'] . '.'][$field . '.removeItems'];
 
         return GeneralUtility::trimExplode(',', $modTSConfig['value'], true);
     }

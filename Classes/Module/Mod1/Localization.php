@@ -14,6 +14,7 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Ppi\TemplaVoilaPlus\Controller\BackendLayoutController;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\SingletonInterface;
@@ -31,7 +32,7 @@ class Localization implements SingletonInterface
     /**
      * A pointer to the parent object, that is the templavoila page module script. Set by calling the method init() of this class.
      *
-     * @var \tx_templavoilaplus_module1
+     * @var BackendLayoutController
      */
     public $pObj; //
 
@@ -39,7 +40,7 @@ class Localization implements SingletonInterface
      * Initializes the sub module object. The calling class must make sure that the right locallang files are already loaded.
      * This method is usually called by the templavoila page module.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the parent object ($this)
+     * @param BackendLayoutController $pObj Reference to the parent object ($this)
      *
      * @return void
      * @access public
@@ -64,12 +65,12 @@ class Localization implements SingletonInterface
      * Renders the localization menu item. It contains the language selector, the create new translation button and other settings
      * related to localization.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the sidebar's parent object (the page module). Not used here, we use our own reference, $this->pObj.
+     * @param BackendLayoutController $pObj Reference to the sidebar's parent object (the page module). Not used here, we use our own reference, $this->pObj.
      *
      * @return string HTML output
      * @access public
      */
-    public function sidebar_renderItem(&$pObj)
+    public function sidebar_renderItem($pObj)
     {
         $iOutput = $this->sidebar_renderItem_renderLanguageSelectorbox() .
             $this->sidebar_renderItem_renderNewTranslationSelectorbox();
