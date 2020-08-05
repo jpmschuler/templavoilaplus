@@ -37,7 +37,7 @@ class ContentCreationPagePositionMap extends \TYPO3\CMS\Backend\Tree\View\Conten
         if (!$parentRecord) {
             return parent::onClickInsertRecord($row, $vv, $moveUid, $pid, $sys_lang);
         }
-        $location = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+        $location = $this->uriBuilder->buildUriFromRoute(
             'web_txtemplavoilaplusLayout',
             [
                 'id' => $pid,

@@ -254,12 +254,6 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
      */
     public $sortableContainers = array();
 
-    /**
-     * holds the extconf configuration
-     *
-     * @var array
-     */
-    public $extConf;
 
     /**
      * Icons which shouldn't be rendered by configuration, can contain elements of "new,edit,copy,cut,ref,paste,browse,delete,makeLocal,unlink,hide"
@@ -335,16 +329,6 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
      */
     const DOKTYPE_NORMAL_EDIT = 1;
 
-    /**
-     * @var IconFactory
-     */
-    protected $iconFactory;
-
-    /**
-     * @var string path to the locallang_core.xlf (which changed in 8.5.0)
-     */
-    protected $coreLangPath = 'core/';
-
 
 
     /*******************************************
@@ -362,12 +346,6 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
     {
     	parent::init();
 
-        $this->uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
-        $this->moduleTemplate = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Compat\Template\ModuleTemplate::class);
-        $this->iconFactory = $this->moduleTemplate->getIconFactory();
-        $this->buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
-
-        $this->coreLangPath = TemplaVoilaUtility::getCoreLangPath();
 
         $view = $this->moduleTemplate->getView();
         $view->setPartialRootPaths(
@@ -399,7 +377,7 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
             $this->newContentWizModuleName = $tsConfig['properties']['newContentElementWizard.']['override'];
         }
 
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        
 
         $this->altRoot = GeneralUtility::_GP('altRoot');
         $this->versionId = GeneralUtility::_GP('versionId');

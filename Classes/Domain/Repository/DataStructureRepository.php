@@ -14,6 +14,7 @@ namespace Ppi\TemplaVoilaPlus\Domain\Repository;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Doctrine\DBAL\Query\QueryBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Core\Environment;
@@ -94,7 +95,7 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
                 'uid',
                 'tx_templavoilaplus_datastructure',
                 'pid=' . (int)$pid
-                . BackendUtility::deleteClause('tx_templavoilaplus_datastructure')
+                . ' AND NOT deleted'
                 . ' AND pid!=-1 '
                 . BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_datastructure')
             );
@@ -136,7 +137,7 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
                 'uid',
                 'tx_templavoilaplus_datastructure',
                 'scope=' . (int)$scope . ' AND pid=' . (int)$pid
-                . BackendUtility::deleteClause('tx_templavoilaplus_datastructure')
+                . ' AND NOT deleted'
                 . ' AND pid!=-1 '
                 . BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_datastructure')
             );
@@ -174,7 +175,7 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
                 'uid',
                 'tx_templavoilaplus_datastructure',
                 'scope=' . (int)$scope
-                . BackendUtility::deleteClause('tx_templavoilaplus_datastructure')
+                . ' AND NOT deleted'
                 . ' AND pid!=-1 '
                 . BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_datastructure')
             );
@@ -208,7 +209,7 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
                 'uid',
                 'tx_templavoilaplus_datastructure',
                 '1=1'
-                . BackendUtility::deleteClause('tx_templavoilaplus_datastructure')
+                . ' AND NOT deleted'
                 . ' AND pid!=-1 '
                 . BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_datastructure')
             );
@@ -248,10 +249,7 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
      */
     protected static function isStaticDsEnabled()
     {
-        $configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
-        return true;
-        // TODO: add this method
-        return $configurationService->isStaticDataStructureEnabled();
+        return (bool)$GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus']['staticDS']['enable'];
     }
 
     /**
@@ -259,10 +257,10 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
      */
     public static function getStaticDatastructureConfiguration()
     {
-        $config = array();
+        $config = [];
         if (!self::$staticDsInitComplete) {
             if (self::isStaticDsEnabled()) {
-                self::readStaticDsFilesIntoArray();
+                self::readStaticDsFilesIntoArray($GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus']);
             }
             self::$staticDsInitComplete = true;
         }
@@ -309,51 +307,51 @@ class DataStructureRepository implements \TYPO3\CMS\Core\SingletonInterface
      */
     public function getDatastructureCountForPid($pid)
     {
-        $dsCnt = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTgetRows(
-            'DISTINCT datastructure',
-            'tx_templavoilaplus_tmplobj',
-            'pid=' . (int)$pid . BackendUtility::deleteClause('tx_templavoilaplus_tmplobj'),
-            'datastructure'
-        );
-        array_unique($dsCnt);
+    	/** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+    	$queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_templavoilaplus_tmplobj');
+        $queryBuilder
+            ->select('datastructure')
+            ->from('tx_templavoilaplus_tmplobj')
+            ->where(
+                $queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($pid, \PDO::PARAM_INT)))
+            ->groupBy('datastructure');
 
-        return count($dsCnt);
+        return $queryBuilder
+            ->execute()
+            ->rowCount();
     }
 
 
     /**
-     * @return array
+     * @param array $conf
      */
-    protected static function readStaticDsFilesIntoArray()
+    protected static function readStaticDsFilesIntoArray($conf)
     {
-
-        $systemPath = Environment::getPublicPath();
-        $systemPath .= '/';
-
-        $configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
-        
-        // TODO: finish
-        //$dataStructurePlaces = $configurationService->getDataStructurePlaces();
-        
-	    $dataStructurePlaces = [
-	        'page' => 'typo3conf/templates/ds/page/',
-	        'fce' => 'typo3conf/templates/ds/fce/',
-	    ];
-
-        foreach ($dataStructurePlaces as $scope => $dataStructurePlace) {
-            $files = GeneralUtility::getFilesInDir($systemPath . $dataStructurePlace, 'xml', true);
-
+		$paths = ['fce' => $conf['staticDS']['path_fce'], 'page' => $conf['staticDS']['path_page']];
+        foreach ($paths as $type => $path) {
+            $absolutePath = GeneralUtility::getFileAbsFileName($path);
+            $files = GeneralUtility::getFilesInDir($absolutePath, 'xml', true);
+            // if all files are in the same folder, don't resolve the scope by path type
+            if (count($paths) == 1) {
+                $type = false;
+            }
             foreach ($files as $filePath) {
                 $staticDataStructure = array();
                 $pathInfo = pathinfo($filePath);
 
                 $staticDataStructure['title'] = $pathInfo['filename'];
-                $staticDataStructure['path'] = substr($filePath, strlen($systemPath));
+                $staticDataStructure['path'] = substr($filePath, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
                 $iconPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '.gif';
                 if (file_exists($iconPath)) {
-                    $staticDataStructure['icon'] = substr($iconPath, strlen($systemPath));
+                    $staticDataStructure['icon'] = substr($iconPath, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
                 }
-                $staticDataStructure['scope'] = $scope;
+
+                if (($type !== false && $type === 'fce') || strpos($pathInfo['filename'], '(fce)') !== false) {
+                    $staticDataStructure['scope'] = \Ppi\TemplaVoilaPlus\Domain\Model\AbstractDataStructure::SCOPE_FCE;
+                } else {
+                    $staticDataStructure['scope'] = \Ppi\TemplaVoilaPlus\Domain\Model\AbstractDataStructure::SCOPE_PAGE;
+                }
 
                 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures'][] = $staticDataStructure;
             }

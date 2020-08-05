@@ -14,7 +14,7 @@ namespace Ppi\TemplaVoilaPlus\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
-use Psr\Http\Message\ResponseInterface;
+#use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -24,7 +24,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
 
-$GLOBALS['LANG']->includeLLFile(
+
+TemplaVoilaUtility::getLanguageService()->includeLLFile(
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Resources/Private/Language/BackendControlCenter.xlf'
 );
 
@@ -33,7 +34,7 @@ $GLOBALS['LANG']->includeLLFile(
  *
  * @author Kasper Skaarhoj <kasper@typo3.com>
  */
-class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
+class BackendControlCenterController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScriptClass
 {
     /**
      * @var array
@@ -81,31 +82,15 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
      */
     public $errorsWarnings = array();
 
-    /**
-     * holds the extconf configuration
-     *
-     * @var array
-     */
-    public $extConf;
 
-    /**
-     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
-     */
-    private $databaseConnection;
+
 
     /**
      * @return void
      */
     public function init()
     {
-        $this->databaseConnection = TemplaVoilaUtility::getDatabaseConnection();
         parent::init();
-
-        $this->moduleTemplate = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Template\ModuleTemplate::class);
-        $this->iconFactory = $this->moduleTemplate->getIconFactory();
-        $this->buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
-
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
     }
 
     /**
@@ -119,7 +104,8 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         ];
 
         // page/be_user TSconfig settings and blinding of menu-items
-        $this->modTSconfig = BackendUtility::getModTSconfig($this->id, 'mod.' . $this->moduleName);
+        $pageTsConfig = BackendUtility::getPagesTSconfig($this->id);
+        $this->modTSconfig = $pageTsConfig['mod.'.$this->moduleName];
 
         // CLEANSE SETTINGS
         $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->moduleName);
@@ -136,14 +122,17 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
      * As this controller goes only through the main() method, it is rather simple for now
      *
      * @param ServerRequestInterface $request the current request
-     * @param ResponseInterface $response
-     * @return ResponseInterface the response with the content
+     * @return \TYPO3\CMS\Core\Http\Response the response with the content
      */
-    public function mainAction(ServerRequestInterface $request, ResponseInterface $response)
+    public function mainAction(ServerRequestInterface $request = null)
     {
         $this->init();
         $this->main();
+        
+        /* @var $response \TYPO3\CMS\Core\Http\Response */
+        $response = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Http\Response::class);
         $response->getBody()->write($this->moduleTemplate->renderContent());
+
         return $response;
     }
 
@@ -174,14 +163,10 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
                 );
             }
 
-            $this->getPageRenderer()->loadJquery();
+            // $this->getPageRenderer()->loadJquery();
 
             // Setup JS for ClickMenu/ContextMenu which isn't loaded by ModuleTemplate
-            if (version_compare(TYPO3_version, '8.6.0', '>=')) {
-                $this->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
-            } else {
-                $this->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Backend/ClickMenu');
-            }
+            $this->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Backend/ContextMenu');
 
             // Set up JS for dynamic tab menu and side bar
             $this->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Backend/Tabs');
@@ -219,7 +204,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         $this->moduleTemplate->setTitle($title);
 
         $this->moduleTemplate->getDocHeaderComponent()->setMetaInformation($pageInfoArr);
-        $this->setDocHeaderButtons(!isset($pageInfoArr['uid']));
+        $this->setDocHeaderButtons();
 
         if ($this->content) {
             $this->moduleTemplate->setContent($header . $this->content);
@@ -307,7 +292,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         return $this->databaseConnection->exec_SELECTcountRows(
             'uid',
             'tx_templavoilaplus_datastructure',
-            'pid=' . (int)$this->id . BackendUtility::deleteClause('tx_templavoilaplus_datastructure')
+            'pid=' . (int)$this->id . ' AND NOT deleted'
         );
     }
 
@@ -322,7 +307,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         return $this->databaseConnection->exec_SELECTcountRows(
             'uid',
             'tx_templavoilaplus_tmplobj',
-            'pid=' . (int)$this->id . BackendUtility::deleteClause('tx_templavoilaplus_tmplobj')
+            'pid=' . (int)$this->id . ' AND NOT deleted'
         );
     }
 
@@ -342,16 +327,16 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         $tRows[] = '
             <thead>
                 <th class="col-icon" nowrap="nowrap"></th>
-                <th class="col-title" nowrap="nowrap">' . TemplaVoilaUtility::getLanguageService()->getLL('storagefolders', true) . '</th>
-                <th>' . TemplaVoilaUtility::getLanguageService()->getLL('datastructures', true) . '</th>
-                <th>' . TemplaVoilaUtility::getLanguageService()->getLL('templateobjects', true) . '</th>
+                <th class="col-title" nowrap="nowrap">' . TemplaVoilaUtility::getLanguageService()->getLL('storagefolders') . '</th>
+                <th>' . TemplaVoilaUtility::getLanguageService()->getLL('datastructures') . '</th>
+                <th>' . TemplaVoilaUtility::getLanguageService()->getLL('templateobjects') . '</th>
             </thead>';
 
         if (is_array($list)) {
             foreach ($list as $pid) {
                 $path = $this->findRecordsWhereUsed_pid($pid);
                 if ($path) {
-                    $editUrl = BackendUtility::getModuleUrl($this->moduleName, array('id' => $pid));
+                    $editUrl = $this->uriBuilder->buildUriFromRoute($this->moduleName, ['id' => $pid]);
                     $tRows[] = '
                         <tr>
                             <td class="col-icon" nowrap="nowrap">'
@@ -393,7 +378,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         $toIdArray = $parts = array();
         foreach ($dsScopes as $scopePointer) {
             // Create listing for a DS:
-            list($content, $dsCount, $toCount, $toIdArrayTmp) = $this->renderDSlisting($scopePointer);
+            [$content, $dsCount, $toCount, $toIdArrayTmp] = $this->renderDSlisting($scopePointer);
             if ($dsCount > 0 || $toCount > 0) {
                 $toIdArray = array_merge($toIdArrayTmp, $toIdArray);
                 $scopeIcon = '';
@@ -448,14 +433,14 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         if ($lostTOs) {
             // Add parts for Tab menu:
             $parts[] = array(
-                'label' => sprintf(TemplaVoilaUtility::getLanguageService()->getLL('losttos', true), $lostTOCount),
+                'label' => sprintf(TemplaVoilaUtility::getLanguageService()->getLL('losttos'), $lostTOCount),
                 'content' => $lostTOs
             );
         }
 
         // Complete Template File List
         $parts[] = array(
-            'label' => TemplaVoilaUtility::getLanguageService()->getLL('templatefiles', true),
+            'label' => TemplaVoilaUtility::getLanguageService()->getLL('templatefiles'),
             'content' => $this->completeTemplateFileList()
         );
 
@@ -606,7 +591,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         if ($dsObj->isFilebased()) {
             $overlay = 'overlay-edit';
             $fileName = GeneralUtility::getFileAbsFileName($dsObj->getKey());
-            $editUrl = BackendUtility::getModuleUrl(
+            $editUrl = $this->uriBuilder->buildUriFromRoute(
                 'file_edit',
                 [
                     'target' => $fileName,
@@ -650,7 +635,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
                 'returnUrl' => $this->getBaseUrl(),
             ];
 
-            $dsTitle = '<a href="' . BackendUtility::getModuleUrl('templavoilaplus_mapping', $uriParameters) . '">'
+            $dsTitle = '<a href="' . $this->uriBuilder->buildUriFromRoute('templavoilaplus_mapping', $uriParameters) . '">'
                 . htmlspecialchars($dsObj->getLabel())
                 . '</a>';
         }
@@ -758,12 +743,12 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
             'id' => $this->id,
             'returnUrl' => $this->getBaseUrl(),
         ];
-        $linkUrl = BackendUtility::getModuleUrl('templavoilaplus_mapping', $uriParameters);
+        $linkUrl = $this->uriBuilder->buildUriFromRoute('templavoilaplus_mapping', $uriParameters);
 
         $fileReference = GeneralUtility::getFileAbsFileName($toObj->getFileref());
         if (@is_file($fileReference)) {
             $this->tFileList[$fileReference]++;
-            $fileRef = '<a href="' . htmlspecialchars(substr($fileReference, strlen(PATH_site))) . '" target="_blank">' . htmlspecialchars($toObj->getFileref()) . '</a>';
+            $fileRef = '<a href="' . htmlspecialchars(substr($fileReference, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'))) . '" target="_blank">' . htmlspecialchars($toObj->getFileref()) . '</a>';
             $fileMsg = '';
             $fileMtime = filemtime($fileReference);
         } else {
@@ -934,7 +919,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
                         (tx_templavoilaplus_to=' . (int)$toObj->getKey() . ' AND tx_templavoilaplus_ds=' . $this->databaseConnection->fullQuoteStr($dsKey, 'pages') . ') OR
                         (tx_templavoilaplus_next_to=' . (int)$toObj->getKey() . ' AND tx_templavoilaplus_next_ds=' . $this->databaseConnection->fullQuoteStr($dsKey, 'pages') . ')
                     )' .
-                    BackendUtility::deleteClause('pages')
+                    ' AND NOT deleted'
                 );
                 break;
             case 2:
@@ -944,7 +929,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
                     'CType=' . $this->databaseConnection->fullQuoteStr('templavoilaplus_pi1', 'tt_content') .
                     ' AND tx_templavoilaplus_to=' . (int)$toObj->getKey() .
                     ' AND tx_templavoilaplus_ds=' . $this->databaseConnection->fullQuoteStr($toObj->getDatastructure()->getKey(), 'tt_content') .
-                    BackendUtility::deleteClause('tt_content'),
+                    ' AND NOT deleted' .
                     '',
                     'pid'
                 );
@@ -1129,17 +1114,17 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
             $i = 0;
             foreach ($this->tFileList as $tFile => $count) {
                 $uriParameters['file'] = $tFile;
-                BackendUtility::getModuleUrl('templavoilaplus_mapping', $uriParameters);
+                $this->uriBuilder->buildUriFromRoute('templavoilaplus_mapping', $uriParameters);
                 $tRows[] = '
                     <tr>
                         <td>' . $this->iconFactory->getIcon('actions-document-view', Icon::SIZE_SMALL)->render() . '</td>
                         <td>'
-                        . '<a href="' . htmlspecialchars(substr($tFile, strlen(PATH_site))) . '" target="_blank">'
-                        . htmlspecialchars(substr($tFile, strlen(PATH_site)))
+                        . '<a href="' . htmlspecialchars(substr($tFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'))) . '" target="_blank">'
+                        . htmlspecialchars(substr($tFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/')))
                         . '</a></td>
                         <td align="center">' . $count . '</td>
                         <td>'
-                        . '<a href="' . BackendUtility::getModuleUrl('templavoilaplus_mapping', $uriParameters) . '">'
+                        . '<a href="' . $this->uriBuilder->buildUriFromRoute('templavoilaplus_mapping', $uriParameters) . '">'
                         . $this->iconFactory->getIcon('actions-document-new', Icon::SIZE_SMALL)->render()
                         . ' ' . htmlspecialchars('Create...')
                         . '</a></td>
@@ -1182,7 +1167,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
                             . '</a></td>
                             <td align="center">' . (isset($this->tFileList[$fullPath]) ? $this->tFileList[$fullPath] : '-') . '</td>
                             <td>'
-                            . '<a href="' . BackendUtility::getModuleUrl('templavoilaplus_mapping', $uriParameters) . '">'
+                            . '<a href="' . $this->uriBuilder->buildUriFromRoute('templavoilaplus_mapping', $uriParameters) . '">'
                             . $this->iconFactory->getIcon('actions-document-new', Icon::SIZE_SMALL)->render()
                             . ' ' . htmlspecialchars('Create...')
                             . '</a></td>
@@ -1835,7 +1820,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
 
     public function getBaseUrl(array $extraParams = [])
     {
-        return BackendUtility::getModuleUrl(
+        return $this->uriBuilder->buildUriFromRoute(
             $this->moduleName,
             $this->getLinkParameters($extraParams)
         );
@@ -1888,7 +1873,7 @@ class BackendControlCenterController extends \TYPO3\CMS\Backend\Module\BaseScrip
         $buttonPosition = ButtonBar::BUTTON_POSITION_LEFT,
         $buttonGroup = 1
     ) {
-        $url = BackendUtility::getModuleUrl(
+        $url = $this->uriBuilder->buildUriFromRoute(
             $module,
             array_merge(
                 $params,

@@ -42,7 +42,7 @@ class Check
             );
         }
 
-        $link = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+        $link = $this->uriBuilder->buildUriFromRoute(
             'tools_ExtensionmanagerExtensionmanager',
             array(
                 'tx_extensionmanager_tools_extensionmanagerextensionmanager[extensionKey]' => 'templavoilaplus',
@@ -74,8 +74,8 @@ class Check
      */
     protected function staticDsIsEnabled()
     {
-        $conf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
-        return (bool)$conf['staticDS.']['enable'];
+        $conf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
+        return (bool)$conf['staticDS']['enable'];
     }
 
     /**

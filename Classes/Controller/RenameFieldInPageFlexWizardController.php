@@ -13,18 +13,15 @@ namespace Ppi\TemplaVoilaPlus\Controller;
  *
  * The TYPO3 project - inspiring people to share!
  */
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
-use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
 
 /**
  * This wizard renames a field in pages.tx_templavoilaplus_flex, to avoid
  * a remapping
  */
-class RenameFieldInPageFlexWizardController extends \TYPO3\CMS\Backend\Module\AbstractFunctionModule
+class RenameFieldInPageFlexWizardController extends \Ppi\TemplaVoilaPlus\Compat\Module\AbstractFunctionModule
 {
 
     /**
@@ -258,40 +255,4 @@ class RenameFieldInPageFlexWizardController extends \TYPO3\CMS\Backend\Module\Ab
         return $return;
     }
 
-    /**
-     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
-     */
-    protected function getDatabaseConnection()
-    {
-        return TemplaVoilaUtility::getDatabaseConnection();
-    }
-
-    /**
-     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
-     */
-    protected function getBackendUser()
-    {
-        return $GLOBALS['BE_USER'];
-    }
-
-    /**
-     * @return \TYPO3\CMS\Lang\LanguageService
-     */
-    protected function getLanguageService()
-    {
-        return $GLOBALS['LANG'];
-    }
-
-    /**
-     * @return FlashMessageQueue
-     */
-    protected function getFlashMessageQueue()
-    {
-        if (!isset($this->flashMessageQueue)) {
-            /** @var FlashMessageService $service */
-            $service = GeneralUtility::makeInstance(FlashMessageService::class);
-            $this->flashMessageQueue = $service->getMessageQueueByIdentifier();
-        }
-        return $this->flashMessageQueue;
-    }
 }

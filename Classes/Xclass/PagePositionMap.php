@@ -15,7 +15,7 @@ class PagePositionMap extends \TYPO3\CMS\Backend\Tree\View\PagePositionMap
      */
     public function onClickEvent($pid, $newPagePID)
     {
-        $location = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+        $location = $this->uriBuilder->buildUriFromRoute(
             'web_txtemplavoilaplusLayout',
             [
                 'cmd' => 'crPage',

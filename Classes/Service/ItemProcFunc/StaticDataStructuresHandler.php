@@ -154,7 +154,7 @@ class StaticDataStructuresHandler
      */
     public function templateObjectItemsProcFunc(array &$params, \TYPO3\CMS\Backend\Form\FormDataProvider\TcaSelectItems &$pObj)
     {
-        $this->conf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->conf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
 
         if ($this->conf['enable.']['selectDataStructure']) {
             $this->templateObjectItemsProcFuncForCurrentDS($params, $pObj);

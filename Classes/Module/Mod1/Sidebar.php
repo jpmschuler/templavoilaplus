@@ -277,7 +277,7 @@ class Sidebar implements SingletonInterface
         if ($pObj->id > 0) {
             $versionSelector = trim($this->moduleTemplate->getVersionSelector($pObj->id));
             if (!$versionSelector) {
-                $clickUrl = BackendUtility::getModuleUrl(
+                $clickUrl = $this->uriBuilder->buildUriFromRoute(
                     'web_txversionM1',
                     [
                         'table' => 'pages',

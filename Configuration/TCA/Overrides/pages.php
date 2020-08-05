@@ -93,8 +93,8 @@ $tempColumns = array(
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns('pages', $tempColumns);
 
-$_EXTCONF = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
-if ($_EXTCONF['enable.']['selectDataStructure']) {
+$_EXTCONF = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
+if ($_EXTCONF['enable']['selectDataStructure']) {
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',
         'tx_templavoilaplus_ds,tx_templavoilaplus_to',
@@ -119,7 +119,7 @@ if ($_EXTCONF['enable.']['selectDataStructure']) {
     }
     $GLOBALS['TCA']['pages']['ctrl']['requestUpdate'] .= 'tx_templavoilaplus_ds,tx_templavoilaplus_next_ds';
 } else {
-    if (!$_EXTCONF['enable.']['oldPageModule']) {
+    if (!$_EXTCONF['enable']['oldPageModule']) {
         \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
             'pages',
             'tx_templavoilaplus_to',

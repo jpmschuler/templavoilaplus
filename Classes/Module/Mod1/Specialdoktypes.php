@@ -215,7 +215,7 @@ class Specialdoktypes implements SingletonInterface
     public function renderDoktype_254($pageRecord)
     {
         if ($this->userHasAccessToListModule()) {
-            $listModuleURL = BackendUtility::getModuleUrl('web_list', array('id' => (int)$this->pObj->id), '');
+            $listModuleURL = $this->uriBuilder->buildUriFromRoute('web_list', array('id' => (int)$this->pObj->id), '');
             $onClick = "top.nextLoadModuleUrl='" . $listModuleURL . "';top.fsMod.recentIds['web']=" . (int)$this->pObj->id . ";top.goToModule('web_list',1);";
             $listModuleLink = '<br /><br />' .
                 $this->pObj->getIconFactory()->getIcon('actions-system-list-open', Icon::SIZE_SMALL) .

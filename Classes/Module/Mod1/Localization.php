@@ -112,7 +112,7 @@ class Localization implements SingletonInterface
 
                 // Link to editing of language header:
                 $availableTranslationsFlags .= '<a href="'
-                    . BackendUtility::getModuleUrl(
+                    . $this->uriBuilder->buildUriFromRoute(
                         'web_txtemplavoilaplusLayout',
                         $this->pObj->getLinkParameters(['editPageLanguageOverlay' => $language['uid']])
                     ) . '" style="margin-right:4px">' .
