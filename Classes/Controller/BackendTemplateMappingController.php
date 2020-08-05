@@ -26,8 +26,9 @@ use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
 use Ppi\TemplaVoilaPlus\Utility\DataStructureUtility;
 use Ppi\TemplaVoilaPlus\Utility\FileUtility;
 
-$GLOBALS['LANG']->includeLLFile(
-    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Resources/Private/Language/BackendTemplateMapping.xlf'
+
+TemplaVoilaUtility::getLanguageService()->includeLLFile(
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Resources/Private/Language/BackendControlCenter.xlf'
 );
 
 /**
@@ -36,7 +37,7 @@ $GLOBALS['LANG']->includeLLFile(
  * @author Kasper Skaarhoj <kasperYYYY@typo3.com>
  * @co-author Robert Lemke <robert@typo3.org>
  */
-class BackendTemplateMappingController
+class BackendTemplateMappingController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScriptClass
 {
     /**
      * @var string
@@ -244,12 +245,6 @@ class BackendTemplateMappingController
      */
     public $eTypes;
 
-    /**
-     * holds the extconf configuration
-     *
-     * @var array
-     */
-    public $extConf;
 
     /**
      * Boolean; if true DS records are file based
@@ -264,13 +259,6 @@ class BackendTemplateMappingController
     public function init()
     {
         parent::init();
-
-        /** @var ModuleTemplate moduleTemplate */
-        $this->moduleTemplate = GeneralUtility::makeInstance(ModuleTemplate::class);
-        $this->iconFactory = $this->moduleTemplate->getIconFactory();
-        $this->buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
-
-        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
 
     /**
@@ -289,7 +277,8 @@ class BackendTemplateMappingController
         ];
 
         // page/be_user TSconfig settings and blinding of menu-items
-        $this->modTSconfig = BackendUtility::getModTSconfig($this->id, 'mod.' . $this->moduleName);
+	    $pageTsConfig = BackendUtility::getPagesTSconfig($this->id);
+        $this->modTSconfig = $pageTsConfig['mod.'][$this->moduleName.'.getModTSconfig'];
 
         // CLEANSE SETTINGS
         $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->moduleName);
@@ -347,19 +336,22 @@ class BackendTemplateMappingController
      *
      *******************************************/
 
-    /**
-     * Injects the request object for the current request or subrequest
-     * As this controller goes only through the main() method, it is rather simple for now
-     *
-     * @param ServerRequestInterface $request the current request
-     * @param ResponseInterface $response
-     * @return ResponseInterface the response with the content
-     */
-    public function mainAction(ServerRequestInterface $request, ResponseInterface $response)
+	/**
+	 * Injects the request object for the current request or subrequest
+	 * As this controller goes only through the main() method, it is rather simple for now
+	 *
+	 * @param ServerRequestInterface|null $request the current request
+	 * @return \TYPO3\CMS\Core\Http\Response the response with the content
+	 */
+    public function mainAction(ServerRequestInterface $request = null)
     {
         $this->init();
         $this->main();
+        
+        /* @var $response \TYPO3\CMS\Core\Http\Response */
+        $response = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Http\Response::class);
         $response->getBody()->write($this->moduleTemplate->renderContent());
+
         return $response;
     }
 
@@ -1160,7 +1152,7 @@ class BackendTemplateMappingController
             $res = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTquery(
                 '*',
                 'pages',
-                'uid IN (' . $this->storageFolders_pidList . ')' . BackendUtility::deleteClause('pages'),
+                'uid IN (' . $this->storageFolders_pidList . ')' . ' AND NOT deleted',
                 '',
                 'title'
             );
@@ -1176,7 +1168,7 @@ class BackendTemplateMappingController
                     '*, CASE WHEN LOCATE(' . TemplaVoilaUtility::getDatabaseConnection()->fullQuoteStr('(fce)', 'tx_templavoilaplus_tmplobj') . ', datastructure)>0 THEN 2 ELSE 1 END AS scope',
                     'tx_templavoilaplus_tmplobj',
                     'pid IN (' . $this->storageFolders_pidList . ') AND datastructure!=' . TemplaVoilaUtility::getDatabaseConnection()->fullQuoteStr('', 'tx_templavoilaplus_tmplobj') .
-                    BackendUtility::deleteClause('tx_templavoilaplus_tmplobj') .
+                    ' AND NOT deleted' .
                     BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_tmplobj'),
                     '',
                     'scope,title'
@@ -1186,7 +1178,7 @@ class BackendTemplateMappingController
                     'tx_templavoilaplus_tmplobj.*,tx_templavoilaplus_datastructure.scope',
                     'tx_templavoilaplus_tmplobj LEFT JOIN tx_templavoilaplus_datastructure ON tx_templavoilaplus_datastructure.uid=tx_templavoilaplus_tmplobj.datastructure',
                     'tx_templavoilaplus_tmplobj.pid IN (' . $this->storageFolders_pidList . ') AND tx_templavoilaplus_tmplobj.datastructure>0 ' .
-                    BackendUtility::deleteClause('tx_templavoilaplus_tmplobj') .
+                    ' AND NOT deleted' .
                     BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_tmplobj'),
                     '',
                     'tx_templavoilaplus_datastructure.scope, tx_templavoilaplus_tmplobj.pid, tx_templavoilaplus_tmplobj.title'
@@ -1387,7 +1379,7 @@ class BackendTemplateMappingController
                     '*',
                     'tx_templavoilaplus_tmplobj',
                     'pid IN (' . $this->storageFolders_pidList . ') AND datastructure=' . (int)$row['uid'] .
-                    BackendUtility::deleteClause('tx_templavoilaplus_tmplobj') .
+                    ' AND NOT deleted' .
                     BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_tmplobj')
                 );
                 $tRows = [];
@@ -2221,8 +2213,7 @@ class BackendTemplateMappingController
      */
     public function drawDataStructureMap($dataStruct, $mappingMode = 0, $currentMappingInfo = array(), $pathLevels = array(), $optDat = array(), $contentSplittedByMapping = array(), $level = 0, $tRows = array(), $formPrefix = '', $path = '', $mapOK = 1)
     {
-        $bInfo = GeneralUtility::clientInfo();
-        $multilineTooltips = ($bInfo['BROWSER'] == 'msie');
+        $multilineTooltips = strpos($_SERVER['HTTP_USER_AGENT'], 'msie');
 
         // Data Structure array must be ... and array of course...
         if (is_array($dataStruct)) {
@@ -2691,7 +2682,7 @@ class BackendTemplateMappingController
         $res = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTquery(
             'uid,storage_pid',
             'pages',
-            'storage_pid>0' . BackendUtility::deleteClause('pages')
+            'storage_pid>0' . ' AND NOT deleted'
         );
         while (false !== ($row = TemplaVoilaUtility::getDatabaseConnection()->sql_fetch_assoc($res))) {
             if (TemplaVoilaUtility::getBackendUser()->isInWebMount($row['storage_pid'], $readPerms)) {
@@ -2706,10 +2697,11 @@ class BackendTemplateMappingController
         $res = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTquery(
             'pid,root',
             'sys_template',
-            'root=1' . BackendUtility::deleteClause('sys_template')
+            'root=1' . ' AND NOT deleted'
         );
         while (false !== ($row = TemplaVoilaUtility::getDatabaseConnection()->sql_fetch_assoc($res))) {
-            $tsCconfig = BackendUtility::getModTSconfig($row['pid'], 'tx_templavoilaplus');
+        	$pageTsConfig = BackendUtility::getPagesTSconfig($this->id);
+            $tsCconfig = $pageTsConfig['tx_templavoilaplus.'];
             if (isset($tsCconfig['properties']['storagePid']) &&
                 TemplaVoilaUtility::getBackendUser()->isInWebMount($tsCconfig['properties']['storagePid'], $readPerms)
             ) {

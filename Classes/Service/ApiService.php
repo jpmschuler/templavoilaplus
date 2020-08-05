@@ -168,7 +168,8 @@ class ApiService
         /* @var $tce DataHandler */
 
         // set default TCA values specific for the page and user
-        $TCAdefaultOverride = BackendUtility::getModTSconfig($newRecordPid, 'TCAdefaults');
+	    $pageTsConfig = BackendUtility::getPagesTSconfig($newRecordPid);
+        $TCAdefaultOverride = $pageTsConfig['TCAdefaults.'];
         if (is_array($TCAdefaultOverride['properties'])) {
             $tce->setDefaultsFromUserTS($TCAdefaultOverride['properties']);
         }
@@ -1423,7 +1424,7 @@ class ApiService
             "$tTO.*",
             "$tTO LEFT JOIN $tDS ON $tTO.datastructure = $tDS.uid",
             "$tTO.pid=" . (int)$storageFolderPID . " AND $tDS.scope=1" .
-            BackendUtility::deleteClause($tTO) . BackendUtility::deleteClause($tDS) .
+            ' AND NOT '.$tTO.'.deleted  AND NOT ' . $tDS . '.deleted' .
             BackendUtility::versioningPlaceholderClause($tTO) . BackendUtility::versioningPlaceholderClause($tDS)
         );
         if (!$res) {
@@ -1905,7 +1906,7 @@ class ApiService
         $this->allSystemWebsiteLanguages['rows'] = $this->getDatabaseConnection()->exec_SELECTgetRows(
             'sys_language.*',
             'sys_language',
-            '1=1' . BackendUtility::deleteClause('sys_language'),
+            '1=1' . ' AND NOT deleted',
             '',
             'uid',
             '',
@@ -1948,7 +1949,8 @@ class ApiService
     public function getModWebTSconfig($pageId)
     {
         if (!isset($this->cachedModWebTSconfig[$pageId])) {
-            $modTSconfig = BackendUtility::getModTSconfig($pageId, 'mod.web_txtemplavoilaplusLayout');
+        	$pageTsConfig = BackendUtility::getPagesTSconfig($pageId);
+            $modTSconfig = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.'];
             $this->cachedModWebTSconfig[$pageId] = $modTSconfig;
         }
 

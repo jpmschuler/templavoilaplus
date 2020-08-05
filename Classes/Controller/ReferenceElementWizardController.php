@@ -94,7 +94,8 @@ class ReferenceElementWizardController extends \Ppi\TemplaVoilaPlus\Compat\Modul
             }
         ');
 
-        $this->modSharedTSconfig = BackendUtility::getModTSconfig($this->pObj->id, 'mod.SHARED');
+        $pageTsConfig = BackendUtility::getPagesTSconfig($this->pObj->id);
+        $this->modSharedTSconfig = $pageTsConfig['mod.']['SHARED'];
         $this->allAvailableLanguages = TemplaVoilaUtility::getAvailableLanguages(0, true, true, $this->modSharedTSconfig);
 
         $this->templavoilaAPIObj = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Service\ApiService::class);
@@ -293,7 +294,7 @@ class ReferenceElementWizardController extends \Ppi\TemplaVoilaPlus\Compat\Modul
             (count($referencedElementsArr) ? ' AND uid NOT IN (' . implode(',', $referencedElementsArr) . ')' : '') .
             ' AND t3ver_wsid=' . (int)$this->getBackendUser()->workspace .
             ' AND l18n_parent=0' .
-            BackendUtility::deleteClause('tt_content') .
+            ' AND NOT deleted' .
             BackendUtility::versioningPlaceholderClause('tt_content'),
             '',
             'sorting'
