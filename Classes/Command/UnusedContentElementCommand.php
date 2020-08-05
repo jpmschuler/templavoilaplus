@@ -141,7 +141,7 @@ Automatic Repair:
                         'AND uid NOT IN (' . implode(',', $usedUids) . ') ' .
                         'AND t3ver_state!=1 ' .
                         'AND t3ver_state!=3 ' .
-                        BackendUtility::deleteClause('tt_content') .
+                        ' AND NOT deleted' .
                         BackendUtility::versioningPlaceholderClause('tt_content'),
                         '',
                         'uid'

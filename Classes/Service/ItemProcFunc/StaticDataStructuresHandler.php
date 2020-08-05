@@ -295,10 +295,8 @@ class StaticDataStructuresHandler
         $field = $params['table'] == 'pages' ? 'uid' : 'pid';
 
         // $modTSConfig = BackendUtility::getModTSconfig($params['row'][$field], 'tx_templavoilaplus.storagePid');
-	    $id = (int)GeneralUtility::_GP('id');
-        $pageTsConfig = BackendUtility::getPagesTSconfig($id);
-	    $modSharedTSconfig['properties'] = $pageTsConfig['mod.']['SHARED.'];
-        $modTSConfig['properties'] = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.'];
+        $pageTsConfig = BackendUtility::getPagesTSconfig($params['row'][$field]);
+	    $modTSConfig = $pageTsConfig['tx_templavoilaplus.']['storagePid.'];
 
         if (is_array($modTSConfig) && MathUtility::canBeInterpretedAsInteger($modTSConfig['value'])) {
             $storagePid = (int)$modTSConfig['value'];
@@ -449,7 +447,9 @@ class StaticDataStructuresHandler
     protected function getShowAdminAllItems($params, $field)
     {
         $pid = $params['row'][$params['table'] == 'pages' ? 'uid' : 'pid'];
-        $modTSConfig = BackendUtility::getModTSconfig($pid, 'TCEFORM.' . $params['table'] . '.' . $field . '.showAdminAllItems');
+        $pageTsConfig = BackendUtility::getPagesTSconfig($pid);
+        $modTSConfig = $pageTsConfig['TCEFORM.'][$params['table'] . '.'][$field . '.']['showAdminAllItems.'];
+        // $modTSConfig = BackendUtility::getModTSconfig($pid, 'TCEFORM.' . $params['table'] . '.' . $field . '.showAdminAllItems');
 
         return (bool) $modTSConfig['value'];
     }

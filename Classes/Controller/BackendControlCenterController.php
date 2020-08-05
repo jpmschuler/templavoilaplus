@@ -117,13 +117,13 @@ class BackendControlCenterController extends \Ppi\TemplaVoilaPlus\Compat\Module\
      *
      *******************************************/
 
-    /**
-     * Injects the request object for the current request or subrequest
-     * As this controller goes only through the main() method, it is rather simple for now
-     *
-     * @param ServerRequestInterface $request the current request
-     * @return \TYPO3\CMS\Core\Http\Response the response with the content
-     */
+	/**
+	 * Injects the request object for the current request or subrequest
+	 * As this controller goes only through the main() method, it is rather simple for now
+	 *
+	 * @param ServerRequestInterface|null $request the current request
+	 * @return \TYPO3\CMS\Core\Http\Response the response with the content
+	 */
     public function mainAction(ServerRequestInterface $request = null)
     {
         $this->init();
@@ -971,7 +971,7 @@ class BackendControlCenterController extends \Ppi\TemplaVoilaPlus\Compat\Module\
                         (tx_templavoilaplus_to NOT IN (' . implode(',', $toIdArray) . ') AND tx_templavoilaplus_ds=' . $this->databaseConnection->fullQuoteStr($dsObj->getKey(), 'pages') . ') OR
                         (tx_templavoilaplus_next_to NOT IN (' . implode(',', $toIdArray) . ') AND tx_templavoilaplus_next_ds=' . $this->databaseConnection->fullQuoteStr($dsObj->getKey(), 'pages') . ')
                     )' .
-                    BackendUtility::deleteClause('pages')
+                    ' AND NOT deleted'
                 );
 
                 while (false !== ($pRow = $this->databaseConnection->sql_fetch_assoc($res))) {
@@ -1006,7 +1006,7 @@ class BackendControlCenterController extends \Ppi\TemplaVoilaPlus\Compat\Module\
                     'CType=' . $this->databaseConnection->fullQuoteStr('templavoilaplus_pi1', 'tt_content') .
                     ' AND tx_templavoilaplus_to NOT IN (' . implode(',', $toIdArray) . ')' .
                     ' AND tx_templavoilaplus_ds=' . $this->databaseConnection->fullQuoteStr($dsObj->getKey(), 'tt_content') .
-                    BackendUtility::deleteClause('tt_content'),
+                    ' AND NOT deleted',
                     '',
                     'pid'
                 );

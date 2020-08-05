@@ -15,6 +15,7 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
  */
 
 use Ppi\TemplaVoilaPlus\Controller\BackendLayoutController;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -261,7 +262,8 @@ class Wizards implements SingletonInterface
     {
         $pageColumnsOnly = 'hidden,title,alias';
         // Get TSconfig for a different selection of fields in the editing form
-        $fieldNamesTs = \TYPO3\CMS\Backend\Utility\BackendUtility::getModTSconfig($newID, 'mod.web_txtemplavoilaplusLayout.createPageWizard.fieldNames');
+	    $pageTsConfig = BackendUtility::getPagesTSconfig($newID);
+        $fieldNamesTs = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.']['createPageWizard.']['fieldNames'];
         if (isset($fieldNamesTs['value'])) {
             $fieldNamesTsValue = trim($fieldNamesTs['value']);
             if ($fieldNamesTsValue && $fieldNamesTsValue !== '*') {

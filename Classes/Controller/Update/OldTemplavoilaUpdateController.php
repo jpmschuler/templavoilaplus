@@ -149,7 +149,7 @@ class OldTemplavoilaUpdateController extends StepUpdateController
         return $this->getDatabaseConnection()->exec_SELECTcountRows(
             '*',
             $table,
-            '1=1 ' . BackendUtility::deleteClause($table)
+            '1=1 ' . ' AND NOT deleted'
         );
     }
 
@@ -183,12 +183,12 @@ class OldTemplavoilaUpdateController extends StepUpdateController
             && $this->getDatabaseConnection()->sql_query(
                 'INSERT INTO tx_templavoilaplus_datastructure (' . $fieldsDs . ')'
                 . ' SELECT ' . $fieldsDs . ' FROM tx_templavoila_datastructure WHERE 1=1 '
-                . BackendUtility::deleteClause('tx_templavoila_datastructure')
+                . ' AND NOT deleted'
             )
             && $this->getDatabaseConnection()->sql_query(
                 'INSERT INTO tx_templavoilaplus_tmplobj (' . $fieldsTo . ')'
                 . ' SELECT ' . $fieldsTo . ' FROM tx_templavoila_tmplobj WHERE 1=1 '
-                . BackendUtility::deleteClause('tx_templavoila_tmplobj')
+                . ' AND NOT deleted'
             );
     }
 
