@@ -4,8 +4,10 @@ namespace Ppi\TemplaVoilaPlus\Compat\Module;
 
 
 
+use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
@@ -206,6 +208,28 @@ class BaseScriptClass
      * @var \TYPO3\CMS\Backend\Template\Components\ButtonBar
      */
     public $buttonBar;
+    
+        /**
+     * @var IconFactory
+     */
+    protected $iconFactory;
+
+    /**
+     * @var string path to the locallang_core.xlf (which changed in 8.5.0)
+     */
+    protected $coreLangPath = 'core/';
+
+    /**
+     * holds the extconf configuration
+     *
+     * @var array
+     */
+    public $extConf;
+
+    /**
+     * @var \TYPO3\CMS\Typo3DbLegacy\Database\DatabaseConnection
+     */
+    protected $databaseConnection;
 
     
     /*******************************************
@@ -221,6 +245,9 @@ class BaseScriptClass
      */
     public function init()
     {
+    	$this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
+    	$this->databaseConnection = TemplaVoilaUtility::getDatabaseConnection();
+
         // Name might be set from outside
         if (!$this->MCONF['name']) {
             $this->MCONF = $GLOBALS['MCONF'];
@@ -230,6 +257,13 @@ class BaseScriptClass
         $this->perms_clause = $this->getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW);
         $this->menuConfig();
         $this->handleExternalFunctionValue();
+        
+        $this->uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
+        $this->moduleTemplate = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Compat\Template\ModuleTemplate::class);
+        $this->iconFactory = $this->moduleTemplate->getIconFactory();
+        $this->buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
+
+        $this->coreLangPath = TemplaVoilaUtility::getCoreLangPath();
     }
 
     

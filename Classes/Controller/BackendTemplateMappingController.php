@@ -270,7 +270,7 @@ class BackendTemplateMappingController
         $this->iconFactory = $this->moduleTemplate->getIconFactory();
         $this->buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
 
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
 
     /**
@@ -379,8 +379,8 @@ class BackendTemplateMappingController
         $this->eTypes = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Cm1\ETypes::class);
         $this->eTypes->init($this);
 
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
-        $this->staticDS = ($this->extConf['staticDS.']['enable']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
+        $this->staticDS = $this->extConf['staticDS']['enable'];
 
         // Setting GPvars:
         // It can be, that we get a storeg:file link from clickmenu
@@ -515,7 +515,7 @@ class BackendTemplateMappingController
             $url = $this->returnUrl;
         } else {
             // @TODO Go back to ControlCenter if we are on "start page"
-            $url = BackendUtility::getModuleUrl(
+            $url = $this->uriBuilder->buildUriFromRoute(
                 'templavoilaplus_mapping',
                 [
                     'id' => $this->id,
@@ -866,7 +866,7 @@ class BackendTemplateMappingController
                 // Getting cached data:
                 reset($dataStruct);
                 $fileContent = GeneralUtility::getUrl($this->displayFile);
-                $relPathFix = dirname(substr($this->displayFile, strlen(PATH_site))) . '/';
+                $relPathFix = dirname(substr($this->displayFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'))) . '/';
 
                 // @TODO We have this init multiple in this class => BAD
                 // @TODO We have this loading 3 times in this class => BAD
@@ -952,9 +952,9 @@ class BackendTemplateMappingController
 
                     if ($this->staticDS) {
                         $title = preg_replace('|[/,\."\']+|', '_', $this->_saveDSandTO_title) . ' (' . ($this->_saveDSandTO_type == 1 ? 'page' : 'fce') . ').xml';
-                        $path = GeneralUtility::getFileAbsFileName($this->_saveDSandTO_type == 2 ? $this->extConf['staticDS.']['path_fce'] : $this->extConf['staticDS.']['path_page']) . $title;
+                        $path = GeneralUtility::getFileAbsFileName($this->_saveDSandTO_type == 2 ? $this->extConf['staticDS']['path_fce'] : $this->extConf['staticDS']['path_page']) . $title;
                         GeneralUtility::writeFile($path, $dataProtXML);
-                        $newID = substr($path, strlen(PATH_site));
+                        $newID = substr($path, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
                     } else {
                         $dataArr = [];
                         $dataArr['tx_templavoilaplus_datastructure']['NEW']['pid'] = (int)$this->_saveDSandTO_pid;
@@ -974,7 +974,7 @@ class BackendTemplateMappingController
                         $dataArr['tx_templavoilaplus_tmplobj']['NEW']['pid'] = (int)$this->_saveDSandTO_pid;
                         $dataArr['tx_templavoilaplus_tmplobj']['NEW']['title'] = $this->_saveDSandTO_title . ' [Template]';
                         $dataArr['tx_templavoilaplus_tmplobj']['NEW']['datastructure'] = $newID;
-                        $dataArr['tx_templavoilaplus_tmplobj']['NEW']['fileref'] = substr($this->displayFile, strlen(PATH_site));
+                        $dataArr['tx_templavoilaplus_tmplobj']['NEW']['fileref'] = substr($this->displayFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
                         $dataArr['tx_templavoilaplus_tmplobj']['NEW']['templatemapping'] = serialize($templatemapping);
                         $dataArr['tx_templavoilaplus_tmplobj']['NEW']['fileref_mtime'] = @filemtime($this->displayFile);
                         $dataArr['tx_templavoilaplus_tmplobj']['NEW']['fileref_md5'] = @md5_file($this->displayFile);
@@ -1055,7 +1055,7 @@ class BackendTemplateMappingController
 
                         // DS:
                         if ($this->staticDS) {
-                            $path = PATH_site . $dsREC['uid'];
+                            $path = \TYPO3\CMS\Core\Core\Environment::getPublicPath().'/' . $dsREC['uid'];
                             GeneralUtility::writeFile($path, $dataProtXML);
                         } else {
                             $dataArr = [];
@@ -1069,7 +1069,7 @@ class BackendTemplateMappingController
                         // TO:
                         $TOuid = BackendUtility::wsMapId('tx_templavoilaplus_tmplobj', $toREC['uid']);
                         $dataArr = [];
-                        $dataArr['tx_templavoilaplus_tmplobj'][$TOuid]['fileref'] = substr($this->displayFile, strlen(PATH_site));
+                        $dataArr['tx_templavoilaplus_tmplobj'][$TOuid]['fileref'] = substr($this->displayFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
                         $dataArr['tx_templavoilaplus_tmplobj'][$TOuid]['templatemapping'] = serialize($templatemapping);
                         $dataArr['tx_templavoilaplus_tmplobj'][$TOuid]['fileref_mtime'] = @filemtime($this->displayFile);
                         $dataArr['tx_templavoilaplus_tmplobj'][$TOuid]['fileref_md5'] = @md5_file($this->displayFile);
@@ -1108,7 +1108,7 @@ class BackendTemplateMappingController
 
             // Header:
             $tRows = [];
-            $relFilePath = substr($this->displayFile, strlen(PATH_site));
+            $relFilePath = substr($this->displayFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
             $onCl = 'return top.openUrlInWindow(\'' . GeneralUtility::getIndpEnv('TYPO3_SITE_URL') . $relFilePath . '\',\'FileView\');';
             $tRows[] = '
                 <tr>
@@ -1556,7 +1556,7 @@ class BackendTemplateMappingController
                             $dataStruct = $this->getDataStructFromDSO($DS_row['dataprot']);
                         } else {
                             // Show filepath of external XML file:
-                            $relFilePath = substr($DSOfile, strlen(PATH_site));
+                            $relFilePath = substr($DSOfile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
                             $onCl = 'return top.openUrlInWindow(\'' . GeneralUtility::getIndpEnv('TYPO3_SITE_URL') . $relFilePath . '\',\'FileView\');';
                             $tRows[] =
                                 '<tr>
@@ -1783,7 +1783,7 @@ class BackendTemplateMappingController
             $this->markupObj->init();
 
             // Fix relative paths in source:
-            $relPathFix = dirname(substr($theFile, strlen(PATH_site))) . '/';
+            $relPathFix = dirname(substr($theFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'))) . '/';
             $uniqueMarker = uniqid('###') . '###';
             $fileContent = $this->markupObj->htmlParse->prefixResourcePath($relPathFix, $fileContent, array('A' => $uniqueMarker));
             $fileContent = $this->fixPrefixForLinks($relPathFix, $fileContent, $uniqueMarker);
@@ -2517,7 +2517,7 @@ class BackendTemplateMappingController
         ];
 
         $content .= '<strong><a href="'
-            . BackendUtility::getModuleUrl('templavoilaplus_template_disply', $theArray)
+            . $this->uriBuilder->buildUriFromRoute('templavoilaplus_template_disply', $theArray)
             . '" target="display">' . $title . '</a></strong>';
 
         return $content;
@@ -2543,7 +2543,7 @@ class BackendTemplateMappingController
             '_load_ds_xml_to' => $this->_load_ds_xml_to
         ];
 
-        return BackendUtility::getModuleUrl('templavoilaplus_mapping', array_merge($theArray, $array));
+        return $this->uriBuilder->buildUriFromRoute('templavoilaplus_mapping', array_merge($theArray, $array));
     }
 
     public function redirectToModifyDSTO($toUid, $dsUid)
@@ -2553,7 +2553,7 @@ class BackendTemplateMappingController
             '_load_ds_xml' => 1,
             '_load_ds_xml_to' => $toUid,
             'uid' => $dsUid,
-            'returnUrl' => BackendUtility::getModuleUrl('web_txtemplavoilaplusCenter', ['id' => (int)$this->_saveDSandTO_pid])
+            'returnUrl' => $this->uriBuilder->buildUriFromRoute('web_txtemplavoilaplusCenter', ['id' => (int)$this->_saveDSandTO_pid])
         ];
 
         header(
@@ -2562,7 +2562,7 @@ class BackendTemplateMappingController
                     $this->displayFile,
                     $toUid,
                     $dsUid,
-                    BackendUtility::getModuleUrl('web_txtemplavoilaplusCenter', ['id' => (int)$this->_saveDSandTO_pid])
+                    $this->uriBuilder->buildUriFromRoute('web_txtemplavoilaplusCenter', ['id' => (int)$this->_saveDSandTO_pid])
                 )
             )
         );
@@ -2579,7 +2579,7 @@ class BackendTemplateMappingController
             'returnUrl' => $returnUrl,
         ];
 
-        return BackendUtility::getModuleUrl('templavoilaplus_mapping', $params);
+        return $this->uriBuilder->buildUriFromRoute('templavoilaplus_mapping', $params);
     }
 
     /**
@@ -2596,7 +2596,7 @@ class BackendTemplateMappingController
      */
     public function makeIframeForVisual($file, $path, $limitTags, $showOnly, $preview = 0)
     {
-        $url = BackendUtility::getModuleUrl(
+        $url = $this->uriBuilder->buildUriFromRoute(
             'templavoilaplus_template_disply',
             [
                 'file' => $file,

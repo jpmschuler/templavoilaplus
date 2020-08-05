@@ -43,11 +43,10 @@ class StaticDataUpdateController
         $this->iconFactory = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Imaging\IconFactory::class);
 
         $this->step = GeneralUtility::_GP('dsWizardDoIt') ? (int)GeneralUtility::_GP('dsWizardStep') : 0;
-        $conf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $conf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
 
         $title = TemplaVoilaUtility::getLanguageService()->sL(
-            'LLL:EXT:templavoilaplus/Resources/Private/Language/template_conf.xlf:staticDS.wizard.title.' . $this->step,
-            true
+            'LLL:EXT:templavoilaplus/Resources/Private/Language/template_conf.xlf:staticDS.wizard.title.' . $this->step
         );
         $description = TemplaVoilaUtility::getLanguageService()->sL(
             'LLL:EXT:templavoilaplus/Resources/Private/Language/template_conf.xlf:staticDS.wizard.description.' . $this->step
@@ -124,10 +123,8 @@ class StaticDataUpdateController
             }
             if (!is_dir($absolutePath)) {
                 try {
-                    $errors = GeneralUtility::mkdir_deep(PATH_site, $path);
-                    if ($errors === null) {
-                        $status = true;
-                    }
+                    $errors = GeneralUtility::mkdir_deep(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/', $path);
+                    $status = true;
                 } catch (\RuntimeException $e) {
                 }
             }
@@ -182,7 +179,7 @@ class StaticDataUpdateController
             $dirPath = $dirPath . (substr($dirPath, -1) == '/' ? '' : '/');
             $title = $this->makeCleanFileName($row['title']);
             $pathAndFilename = $dirPath . $title . '.xml';
-            $outPath = substr($pathAndFilename, strlen(PATH_site));
+            $outPath = substr($pathAndFilename, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'));
 
             $usage = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTgetRows(
                 'count(*)',

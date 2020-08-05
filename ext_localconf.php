@@ -27,7 +27,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Controller\Cont
 $GLOBALS['TYPO3_CONF_VARS']['BE']['flexFormXMLincludeDiffBase'] = true;
 
 $renderFceHeader = '';
-if ($_EXTCONF['enable.']['renderFCEHeader']) {
+if ($_EXTCONF['enable']['renderFCEHeader']) {
     $renderFceHeader = '
     10 < lib.stdheader';
     if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('fluid_styled_content')) {

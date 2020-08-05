@@ -14,20 +14,20 @@ namespace Ppi\TemplaVoilaPlus\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Ppi\TemplaVoilaPlus\Compat\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
-use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
+
 
 /**
  * Reference elements wizard,
  * References all unused elements in a treebranch to a specific point in the TV-DS
  */
-class ReferenceElementWizardController extends \TYPO3\CMS\Backend\Module\AbstractFunctionModule
+class ReferenceElementWizardController extends \Ppi\TemplaVoilaPlus\Compat\Module\AbstractFunctionModule
 {
 
     /**
@@ -82,7 +82,7 @@ class ReferenceElementWizardController extends \TYPO3\CMS\Backend\Module\Abstrac
         );
         $this->getFlashMessageQueue()->enqueue($message);
 
-        $this->moduleTemplate = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Template\ModuleTemplate::class);
+        $this->moduleTemplate = GeneralUtility::makeInstance(ModuleTemplate::class);
         $this->iconFactory = $this->moduleTemplate->getIconFactory();
 
         // Adding classic jumpToUrl function, needed for the function menu.
@@ -311,7 +311,7 @@ class ReferenceElementWizardController extends \TYPO3\CMS\Backend\Module\Abstrac
 
     public function getBaseUrl(array $extraParams = [])
     {
-        return BackendUtility::getModuleUrl(
+        return $this->uriBuilder->buildUriFromRoute(
             'web_func',
             $this->getLinkParameters($extraParams)
         );
@@ -329,40 +329,4 @@ class ReferenceElementWizardController extends \TYPO3\CMS\Backend\Module\Abstrac
         );
     }
 
-    /**
-     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
-     */
-    protected function getDatabaseConnection()
-    {
-        return TemplaVoilaUtility::getDatabaseConnection();
-    }
-
-    /**
-     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
-     */
-    protected function getBackendUser()
-    {
-        return $GLOBALS['BE_USER'];
-    }
-
-    /**
-     * @return \TYPO3\CMS\Lang\LanguageService
-     */
-    protected function getLanguageService()
-    {
-        return $GLOBALS['LANG'];
-    }
-
-    /**
-     * @return FlashMessageQueue
-     */
-    protected function getFlashMessageQueue()
-    {
-        if (!isset($this->flashMessageQueue)) {
-            /** @var FlashMessageService $service */
-            $service = GeneralUtility::makeInstance(FlashMessageService::class);
-            $this->flashMessageQueue = $service->getMessageQueueByIdentifier();
-        }
-        return $this->flashMessageQueue;
-    }
 }

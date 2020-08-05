@@ -45,7 +45,7 @@ class DataHandler
      */
     public function __construct()
     {
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
 
     /********************************************
@@ -76,7 +76,7 @@ class DataHandler
             return;
         }
 
-        if (!$this->extConf['enable.']['selectDataStructure']) {
+        if (!$this->extConf['enable']['selectDataStructure']) {
             // Update DS if TO was changed
             $this->updateDataSourceFromTemplateObject($table, $incomingFieldArray, $reference->BE_USER);
         }

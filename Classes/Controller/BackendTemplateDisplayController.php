@@ -62,7 +62,7 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
     {
         parent::init();
 
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
     /**
      * Preparing menu content
@@ -127,7 +127,7 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
         if ($displayFile !== null) {
             $fileData = GeneralUtility::getUrl($displayFile);
             if ($fileData) {
-                $relPathFix = $GLOBALS['BACK_PATH'] . '../' . dirname(substr($displayFile, strlen(PATH_site))) . '/';
+                $relPathFix = $GLOBALS['BACK_PATH'] . '../' . dirname(substr($displayFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'))) . '/';
 
                 if ($this->preview) { // In preview mode, merge preview data into the template:
                     // Add preview data to file:

@@ -63,7 +63,7 @@ class MainClickMenu
                     $this->getLanguageService()->getLLL('cm1_title', $LL, true),
                     $iconFactory->getIcon('extensions-templavoila-menu-item', Icon::SIZE_SMALL)->render(),
                     $clickMenu->urlRefForCM(
-                        BackendUtility::getModuleUrl(
+                        $this->uriBuilder->buildUriFromRoute(
                             'templavoilaplus_mapping',
                             [
                                 'file' => $table,
@@ -80,7 +80,7 @@ class MainClickMenu
                     $this->getLanguageService()->getLLL('cm1_title', $LL, true),
                     $iconFactory->getIcon('extensions-templavoila-menu-item', Icon::SIZE_SMALL)->render(),
                     $clickMenu->urlRefForCM(
-                        BackendUtility::getModuleUrl(
+                        $this->uriBuilder->buildUriFromRoute(
                             'templavoilaplus_mapping',
                             [
                                 'table' => $table,
@@ -104,7 +104,7 @@ class MainClickMenu
                     $this->getLanguageService()->getLLL('cm1_viewsubelements', $LL, true),
                     $iconFactory->getIcon('extensions-templavoila-menu-item', Icon::SIZE_SMALL)->render(),
                     $clickMenu->urlRefForCM(
-                        BackendUtility::getModuleUrl(
+                        $this->uriBuilder->buildUriFromRoute(
                             'web_txtemplavoilaplusLayout',
                             [
                                 'id' => (int)$clickMenu->rec['pid'],
@@ -127,7 +127,7 @@ class MainClickMenu
                     $this->getLanguageService()->getLLL('cm1_viewflexformxml', $LL, true),
                     $iconFactory->getIcon('extensions-templavoila-menu-item', Icon::SIZE_SMALL)->render(),
                     $clickMenu->urlRefForCM(
-                        BackendUtility::getModuleUrl(
+                        $this->uriBuilder->buildUriFromRoute(
                             'templavoilaplus_flexform_cleaner',
                             [
                                 'id' => (int)$clickMenu->rec['pid'],
@@ -149,7 +149,7 @@ class MainClickMenu
                         $this->getLanguageService()->getLLL('cm_viewdsto', $LL, true) . ' [' . $clickMenu->rec['tx_templavoilaplus_ds'] . '/' . $clickMenu->rec['tx_templavoilaplus_to'] . ']',
                         $iconFactory->getIcon('extensions-templavoila-menu-item', Icon::SIZE_SMALL)->render(),
                         $clickMenu->urlRefForCM(
-                            BackendUtility::getModuleUrl(
+                            $this->uriBuilder->buildUriFromRoute(
                                 'templavoilaplus_mapping',
                                 [
                                     'uid' => $clickMenu->rec['tx_templavoilaplus_ds'],
@@ -181,7 +181,7 @@ class MainClickMenu
                             $iconFactory->getIconForRecord('pages', $pageRecord, Icon::SIZE_SMALL)->render(),
                             BackendUtility::getRecordTitle('pages', $pageRecord, true),
                             $clickMenu->urlRefForCM(
-                                BackendUtility::getModuleUrl(
+                                $this->uriBuilder->buildUriFromRoute(
                                     'web_txtemplavoilaplusLayout',
                                     [
                                         'id' => $pageRecord['uid'],

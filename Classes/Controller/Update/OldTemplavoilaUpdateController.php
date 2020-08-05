@@ -156,7 +156,7 @@ class OldTemplavoilaUpdateController extends StepUpdateController
     // Migrations
     private function migrateConfiguration()
     {
-        $oldconfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoila']);
+        $oldconfig = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
         if (is_array($oldconfig) && count($oldconfig) > 1) {
             // Config available so migrate
             $newconfig = serialize($oldconfig);
@@ -412,8 +412,8 @@ class OldTemplavoilaUpdateController extends StepUpdateController
 
     public function migrateFiles()
     {
-        $pathOld = PATH_site . 'uploads/tx_templavoila/';
-        $pathNew = PATH_site . 'uploads/tx_templavoilaplus/';
+        $pathOld = \TYPO3\CMS\Core\Core\Environment::getPublicPath().'/' . 'uploads/tx_templavoila/';
+        $pathNew = \TYPO3\CMS\Core\Core\Environment::getPublicPath().'/' . 'uploads/tx_templavoilaplus/';
 
         // Check or create new directory existence
         if (!is_dir($pathNew)) {
