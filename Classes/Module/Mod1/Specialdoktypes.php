@@ -13,11 +13,14 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
  *
  * The TYPO3 project - inspiring people to share!
  */
+
+use Ppi\TemplaVoilaPlus\Controller\BackendLayoutController;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Frontend\Page\PageRepository;
+use \TYPO3\CMS\Core\Domain\Repository\PageRepository;
 
 /**
  * Submodule 'clipboard' for the templavoila page module
@@ -31,14 +34,19 @@ class Specialdoktypes implements SingletonInterface
     /**
      * A pointer to the parent object, that is the templavoila page module script. Set by calling the method init() of this class.
      *
-     * @var \tx_templavoilaplus_module1
+     * @var BackendLayoutController
      */
     public $pObj;
+    
+    /**
+     * @var $uriBuilder \TYPO3\CMS\Backend\Routing\UriBuilder 
+     */
+    protected $uriBuilder;
 
     /**
      * Does some basic initialization
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the parent object ($this)
+     * @param BackendLayoutController $pObj Reference to the parent object ($this)
      *
      * @return void
      * @access public
@@ -47,6 +55,7 @@ class Specialdoktypes implements SingletonInterface
     {
         // Make local reference to some important variables:
         $this->pObj = $pObj;
+        $this->uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
     }
 
     /**
@@ -83,9 +92,9 @@ class Specialdoktypes implements SingletonInterface
         }
 
         // check if there is a notice on this URL type
-        $notice = $this->getLanguageService()->getLL('cannotedit_externalurl_' . $pageRecord['urltype'], true);
+        $notice = $this->getLanguageService()->getLL('cannotedit_externalurl_' . $pageRecord['urltype']);
         if (!$notice) {
-            $notice = $this->getLanguageService()->getLL('cannotedit_externalurl_1', true);
+            $notice = $this->getLanguageService()->getLL('cannotedit_externalurl_1');
         }
 
         $urlInfo = ' <br /><br /><strong><a href="' . $url . '" target="_new">' . htmlspecialchars(sprintf($this->getLanguageService()->getLL('jumptoexternalurl'), $url)) . '</a></strong>';
@@ -150,7 +159,7 @@ class Specialdoktypes implements SingletonInterface
             $clickUrl = 'jumpToUrl(\'' . $url . '\');return false;';
             $jumpToShortcutSourceLink = $this->pObj->buildButtonFromUrl(
                 $clickUrl,
-                $this->getLanguageService()->getLL('jumptoshortcutdestination', true),
+                $this->getLanguageService()->getLL('jumptoshortcutdestination'),
                 'apps-pagetree-page-shortcut'
             );
         }
@@ -256,7 +265,7 @@ class Specialdoktypes implements SingletonInterface
     }
 
     /**
-     * @return \TYPO3\CMS\Lang\LanguageService
+     * @return LanguageService
      */
     protected function getLanguageService()
     {

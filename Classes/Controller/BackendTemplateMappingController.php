@@ -28,7 +28,7 @@ use Ppi\TemplaVoilaPlus\Utility\FileUtility;
 
 
 TemplaVoilaUtility::getLanguageService()->includeLLFile(
-    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Resources/Private/Language/BackendControlCenter.xlf'
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Resources/Private/Language/BackendTemplateMapping.xlf'
 );
 
 /**
@@ -278,7 +278,7 @@ class BackendTemplateMappingController extends \Ppi\TemplaVoilaPlus\Compat\Modul
 
         // page/be_user TSconfig settings and blinding of menu-items
 	    $pageTsConfig = BackendUtility::getPagesTSconfig($this->id);
-        $this->modTSconfig = $pageTsConfig['mod.'][$this->moduleName.'.getModTSconfig'];
+        $this->modTSconfig = $pageTsConfig['mod.'][$this->moduleName.'.'];
 
         // CLEANSE SETTINGS
         $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->moduleName);
@@ -2507,7 +2507,7 @@ class BackendTemplateMappingController extends \Ppi\TemplaVoilaPlus\Compat\Modul
             'path' => $path,
         ];
 
-        $content .= '<strong><a href="'
+        $content = '<strong><a href="'
             . $this->uriBuilder->buildUriFromRoute('templavoilaplus_template_disply', $theArray)
             . '" target="display">' . $title . '</a></strong>';
 
@@ -2593,7 +2593,7 @@ class BackendTemplateMappingController extends \Ppi\TemplaVoilaPlus\Compat\Modul
                 'file' => $file,
                 'path' => $path,
                 'preview' => ($preview ? 1 : 0),
-                'show' => ($show ? 1 : 0),
+                'show' => ($showOnly ? 1 : 0),
                 'limitTags' => $limitTags,
                 'mode' => $this->MOD_SETTINGS['displayMode'],
             ]

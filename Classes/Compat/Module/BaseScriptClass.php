@@ -232,6 +232,13 @@ class BaseScriptClass
     protected $databaseConnection;
 
     
+    /**
+     * The name of the module
+     *
+     * @var string
+     */
+    protected $moduleName = '';
+    
     /*******************************************
      *
      * Initialization functions
@@ -249,9 +256,10 @@ class BaseScriptClass
     	$this->databaseConnection = TemplaVoilaUtility::getDatabaseConnection();
 
         // Name might be set from outside
-        if (!$this->MCONF['name']) {
+        /*if (!$this->MCONF['name']) {
             $this->MCONF = $GLOBALS['MCONF'];
-        }
+        }*/
+
         $this->id = (int)GeneralUtility::_GP('id');
         $this->CMD = GeneralUtility::_GP('CMD');
         $this->perms_clause = $this->getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW);
@@ -287,7 +295,7 @@ class BaseScriptClass
                 unset($this->MOD_MENU['function'][$key]);
             }
         }
-        $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->MCONF['name'], $this->modMenu_type, $this->modMenu_dontValidateList, $this->modMenu_setDefaultList);
+        $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->moduleName, $this->modMenu_type, $this->modMenu_dontValidateList, $this->modMenu_setDefaultList);
     }
 
     /**
@@ -360,7 +368,7 @@ class BaseScriptClass
             $this->extObj = GeneralUtility::makeInstance($this->extClassConf['name']);
             $this->extObj->init($this, $this->extClassConf);
             // Re-write:
-            $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->MCONF['name'], $this->modMenu_type, $this->modMenu_dontValidateList, $this->modMenu_setDefaultList);
+            $this->MOD_SETTINGS = BackendUtility::getModuleData($this->MOD_MENU, GeneralUtility::_GP('SET'), $this->moduleName, $this->modMenu_type, $this->modMenu_dontValidateList, $this->modMenu_setDefaultList);
         }
     }
 
