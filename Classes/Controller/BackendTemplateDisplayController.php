@@ -21,7 +21,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
 use Ppi\TemplaVoilaPlus\Utility\FileUtility;
 
-$GLOBALS['LANG']->includeLLFile(
+TemplaVoilaUtility::getLanguageService()->includeLLFile(
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Resources/Private/Language/BackendTemplateMapping.xlf'
 );
 
@@ -31,7 +31,7 @@ $GLOBALS['LANG']->includeLLFile(
  * @author Kasper Skaarhoj <kasperYYYY@typo3.com>
  * @co-author Robert Lemke <robert@typo3.org>
  */
-class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
+class BackendTemplateDisplayController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScriptClass
 {
 
     /**
@@ -47,22 +47,18 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
      * @var string
      */
     protected $moduleName = 'templavoilaplus_display';
+	/**
+	 * @var object|\Ppi\TemplaVoilaPlus\Domain\Model\HtmlMarkup
+	 */
+	protected $markupObj;
 
-    /**
-     * holds the extconf configuration
-     *
-     * @var array
-     */
-    public $extConf;
 
-    /**
+	/**
      * @return void
      */
     public function init()
     {
         parent::init();
-
-        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
     /**
      * Preparing menu content
@@ -71,6 +67,7 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
      */
     public function menuConfig()
     {
+    	parent::menuConfig();
     }
 
     /*******************************************
@@ -80,18 +77,21 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
      *******************************************/
 
     /**
-     * Injects the request object for the current request or subrequest
-     * As this controller goes only through the main() method, it is rather simple for now
-     *
-     * @param ServerRequestInterface $request the current request
-     * @param ResponseInterface $response
-     * @return ResponseInterface the response with the content
-     */
-    public function mainAction(ServerRequestInterface $request, ResponseInterface $response)
+	 * Injects the request object for the current request or subrequest
+	 * As this controller goes only through the main() method, it is rather simple for now
+	 *
+	 * @param ServerRequestInterface|null $request the current request
+	 * @return \TYPO3\CMS\Core\Http\Response the response with the content
+	 */
+    public function mainAction(ServerRequestInterface $request = null)
     {
         $this->init();
         $this->main();
+        
+        /* @var $response \TYPO3\CMS\Core\Http\Response */
+        $response = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Http\Response::class);
         $response->getBody()->write($this->content);
+        
         return $response;
     }
 
@@ -129,7 +129,7 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
             if ($fileData) {
                 $relPathFix = $GLOBALS['BACK_PATH'] . '../' . dirname(substr($displayFile, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/'))) . '/';
 
-                if ($this->preview) { // In preview mode, merge preview data into the template:
+                if ($preview) { // In preview mode, merge preview data into the template:
                     // Add preview data to file:
                     $this->content = $this->displayFileContentWithPreview($fileData, $relPathFix);
                 } else {
@@ -177,12 +177,12 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
             }
 
             $markup = implode('', $cParts);
-            $styleBlock = '<link media="all" href="/'
-                . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('templavoilaplus')
+            $styleBlock = '<link media="all" href="'
+                . '../typo3conf/ext/templavoilaplus'
                 . '/Resources/Public/StyleSheet/HtmlMarkup.css" type="text/css" rel="stylesheet" />'
 
                 . '<link media="all" href="/'
-                . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('templavoilaplus')
+                . '../typo3conf/ext/templavoilaplus'
                 . '/Resources/Public/StyleSheet/cm1_default.css" type="text/css" rel="stylesheet" />'
                 ;
             if (preg_match('/<\/head/i', $markup)) {
@@ -235,13 +235,15 @@ class BackendTemplateDisplayController extends \TYPO3\CMS\Backend\Module\BaseScr
         // Implode content and return it:
         $markup = implode('', $pp);
         $styleBlock = '<link media="all" href="/'
-            . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('templavoilaplus')
+            . '../typo3conf/ext/templavoilaplus'
             . '/Resources/Public/StyleSheet/HtmlMarkup.css" type="text/css" rel="stylesheet" />';
         if (preg_match('/<\/head/i', $markup)) {
             $finalMarkup = preg_replace('/(<\/head)/i', $styleBlock . '\1', $markup);
         } else {
             $finalMarkup = $styleBlock . $markup;
         }
+        
+        // '<pre>' . htmlspecialchars( // todo: check how it should show in preview
 
         return $finalMarkup;
     }
