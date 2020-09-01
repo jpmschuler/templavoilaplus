@@ -1,3 +1,5 @@
+require(["jquery"], function($) {
+
 var browserPos = null;
 var sortableSourceIndex = null;
 var sortableSourceList = null;
@@ -24,10 +26,6 @@ function setFormValueFromBrowseWin(fName, value, label, exclusiveValues) {
     }
 }
 
-function jumpToUrl(URL) {
-    window.location.href = URL;
-    return false;
-}
 
 function setHighlight(id) {
     top.fsMod.recentIds["web"] = id;
@@ -58,38 +56,6 @@ function editList(table, idList) {
     return list ? list : idList;
 }
 
-// --- drag & drop ----
-
-var sortable_currentItem;
-// Needs also:
-// sortable_linkParameters = mod1/index.php -- $this->link_getParameters()
-
-function sortable_unhideRecord(it, command) {
-    jumpToUrl(command);
-}
-
-function sortable_hideRecord(it, command) {
-    if (!sortable_removeHidden) {
-        return jumpToUrl(command);
-    }
-
-    while ((typeof it.className == "undefined") || (it.className.search(/tpm-element(?!-)/) == -1)) {
-        it = it.parentNode;
-    }
-    new Ajax.Request(command);
-    new Effect.Fade(it,
-        { duration: 0.5,
-          afterFinish: sortable_hideRecordCallBack
-        });
-}
-
-function sortable_hideRecordCallBack(obj) {
-    var el = obj.element;
-
-    while (el.lastChild) {
-        el.removeChild(el.lastChild);
-    }
-}
 
 function sortable_unlinkRecordCallBack(obj)
 {
@@ -267,7 +233,7 @@ function tv_createSortable(container, connectWith)
         },
         stop: function (event, ui) {
             sortable_stop(ui.item[0], ui.placeholder);
-//             TYPO3.jQuery(TYPO3.jQuery(ui.item[0]).data('lastParent')).after(ui.item[0]);
+            TYPO3.jQuery(TYPO3.jQuery(ui.item[0]).data('lastParent')).after(ui.item[0]);
         },
         receive: function (event, ui) {
             sortable_receive(TYPO3.jQuery(this)[0]);
@@ -302,4 +268,45 @@ function showError(item)
         .addClass("flashRed")
         .removeClass("toYellow")
         .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).removeClass("flashRed"); });
+}
+
+});
+
+function jumpToUrl(URL) {
+    window.location.href = URL;
+    return false;
+}
+
+function sortable_hideRecord(it, command) {
+    if (!sortable_removeHidden) {
+        return jumpToUrl(command);
+    }
+
+    while ((typeof it.className == "undefined") || (it.className.search(/tpm-element(?!-)/) == -1)) {
+        it = it.parentNode;
+    }
+    new Ajax.Request(command);
+    new Effect.Fade(it,
+        { duration: 0.5,
+          afterFinish: sortable_hideRecordCallBack
+        });
+}
+
+// --- drag & drop ----
+
+var sortable_currentItem;
+// Needs also:
+// sortable_linkParameters = mod1/index.php -- $this->link_getParameters()
+
+function sortable_unhideRecord(it, command) {
+    jumpToUrl(command);
+}
+
+
+function sortable_hideRecordCallBack(obj) {
+    var el = obj.element;
+
+    while (el.lastChild) {
+        el.removeChild(el.lastChild);
+    }
 }

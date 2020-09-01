@@ -596,6 +596,7 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
             $this->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Backend/Tabs');
 
             $this->moduleTemplate->addJavaScriptCode('templavoilaplus_function', '
+            require(["jquery"], function($) {
                 $(document).off(\'click.tab.data-api\', \'[data-toggle="tab"]\');
                 $(document).on(\'click.tab.data-api\', \'[data-toggle="tab"]\', function (e) {
                     e.preventDefault();
@@ -649,6 +650,8 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                 $(function() {
                     typo3pageModule.init();
                 });
+                
+            });
             ');
 
             $this->addJsLibrary(
@@ -735,7 +738,8 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                 // Create sortables
                 if (is_array($this->sortableContainers)) {
                     $script =
-                        'var sortableSource = null' . "\n"
+	                    'console.log("abc");' .
+                        'var sortableSource = null;' . "\n"
                         . 'var sortable_containers = ' . json_encode($this->sortableContainers) . ';' . "\n"
                         . 'var sortable_removeHidden = ' . ($this->MOD_SETTINGS['tt_content_showHidden'] !== '0' ? 'false;' : 'true;') . "\n"
                         . 'var sortable_linkParameters = \'' . $this->link_getParameters() . '\';';
@@ -746,7 +750,9 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                         $script .= "\n" . 'tv_createSortable(\'' . $key . '\',' . $linkedTogether . ');';
                     }
                     $script .= '});});';
-                    $this->content .= GeneralUtility::wrapJS($script);
+                    // $this->content .= GeneralUtility::wrapJS($script);
+			        $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+			        $pageRenderer->addJsFooterInlineCode('BackendLayoutController_sortable', $script);
                 }
             }
 
@@ -1819,7 +1825,7 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                     if ($TCEformsConfiguration['type'] == 'group') {
                         if ($TCEformsConfiguration['internal_type'] == 'file') {
                             // Render preview for images:
-                            $thumbnail = BackendUtility::thumbCode(array('dummyFieldName' => $fieldValue), '', 'dummyFieldName', '', '', $TCEformsConfiguration['uploadfolder']);
+                            $thumbnail = \Ppi\TemplaVoilaPlus\Ext\Backend\Utility\BackendUtility::thumbCode(array('dummyFieldName' => $fieldValue), '', 'dummyFieldName', '', '', $TCEformsConfiguration['uploadfolder']);
                             $previewContent .= '<strong>' . $TCEformsLabel . '</strong> ' . $thumbnail . '<br />';
                         } elseif ($TCEformsConfiguration['internal_type'] === 'db') {
                             if (!$this->renderPreviewDataObjects) {
@@ -1877,7 +1883,7 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                         foreach ($fieldValue['data']['el'] as $sub) {
                             $data = $this->render_previewSubData($sub, $table, $uid, $vKey);
                             if ($data) {
-                                $result .= '<li>' . $data . '</li>';
+                                $result .= '<li class="field">' . $data . '</li>';
                             }
                         }
                         $result .= '</ul>';
@@ -1890,7 +1896,7 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                 if (isset($fieldValue['config']['TCEforms']['config']['type']) && $fieldValue['config']['TCEforms']['config']['type'] == 'group') {
                     if ($fieldValue['config']['TCEforms']['config']['internal_type'] == 'file') {
                         // Render preview for images:
-                        $thumbnail = BackendUtility::thumbCode(array('dummyFieldName' => $fieldValue['data'][$vKey]), '', 'dummyFieldName', '', '', $fieldValue['config']['TCEforms']['config']['uploadfolder']);
+                        $thumbnail = \Ppi\TemplaVoilaPlus\Ext\Backend\Utility\BackendUtility::thumbCode(array('dummyFieldName' => $fieldValue['data'][$vKey]), '', 'dummyFieldName', '', '', $fieldValue['config']['TCEforms']['config']['uploadfolder']);
                         if (isset($fieldValue['config']['TCEforms']['label'])) {
                             $label = $this->localizedFFLabel($fieldValue['config']['TCEforms']['label'], 1);
                         }
