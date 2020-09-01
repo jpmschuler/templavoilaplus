@@ -115,6 +115,8 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreview
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreviewContent']['div']      = \Ppi\TemplaVoilaPlus\Controller\Preview\NullController::class;
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreviewContent']['templavoilaplus_pi1'] = \Ppi\TemplaVoilaPlus\Controller\Preview\NullController::class;
 
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreviewContent']['fluidfoundationtheme_twocolumn'] = \Ppi\TemplaVoilaPlus\Controller\Preview\FluidController::class;
+
 // Register slot for translation mirror url
 /** @var \TYPO3\CMS\Extbase\SignalSlot\Dispatcher $signalSlotDispatcher */
 $signalSlotDispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class);
@@ -134,3 +136,25 @@ $signalSlotDispatcher->connect(
         $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']
     );
 }*/
+
+
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks'][\Ppi\TemplaVoilaPlus\Task\FalMigrateTask::class] = [
+	'extension' => 'templavoilaplus',
+	'title' => 'Migrate tt_contents & datastructures to FAL',
+	'description' => 'Find & process group file fields to FAL + all related files. See Readme first!',
+];
+
+
+
+// uncomment to restore that missing non-fal tca file/group field
+
+//$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\FormDataProvider\TcaGroup::class] = [
+//	'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\FormDataProvider\TcaGroup::class
+//];
+//$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\Element\GroupElement::class] = [
+//	'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\Element\GroupElement::class
+//];
+//$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\NodeFactory::class] = [
+//	'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\NodeFactory::class
+//];
+
