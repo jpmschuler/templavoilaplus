@@ -1,7 +1,7 @@
 <?php
 defined('TYPO3_MODE') or die();
 // Unserializing the configuration so we can use it here
-$_EXTCONF = unserialize('templavoilaplus');
+$_EXTCONF = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
 
 // Register "XCLASS" of FlexFormTools for language parsing
 // Done also in TableConfigurationPostProcessingHook!
@@ -26,16 +26,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Controller\Cont
 // Language diff updating in flex
 $GLOBALS['TYPO3_CONF_VARS']['BE']['flexFormXMLincludeDiffBase'] = true;
 
-$renderFceHeader = '';
-if ($_EXTCONF['enable']['renderFCEHeader']) {
-    $renderFceHeader = '
-    10 < lib.stdheader';
-    if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('fluid_styled_content')) {
-        $renderFceHeader = '
-        10 =< lib.fluidContent
-        10.templateName = Header';
-    }
-}
 
 // Adding the two plugins TypoScript:
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript('templavoilaplus', 'setup', '
@@ -44,10 +34,10 @@ plugin.tx_templavoilaplus_pi1 = USER
 plugin.tx_templavoilaplus_pi1.userFunc = Ppi\TemplaVoilaPlus\Controller\FrontendController->main
 plugin.tx_templavoilaplus_pi1.disableExplosivePreview = 1
 
-tt_content.templavoilaplus_pi1 = COA
+tt_content.templavoilaplus_pi1 =< lib.contentElement
 tt_content.templavoilaplus_pi1 {
-    ' . $renderFceHeader . '
     20 < plugin.tx_templavoilaplus_pi1
+    templateName = Generic
 }
 
 tt_content.menu.20.3 = USER
