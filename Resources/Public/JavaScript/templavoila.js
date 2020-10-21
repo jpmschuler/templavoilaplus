@@ -213,6 +213,7 @@ function sortable_receive(list)
     sortableDestinationList = '#' + list.id;
 }
 
+// causes error on call, have to be callable from global namespace somehow
 function tv_createSortable(container, connectWith)
 {
     var $sortingContainer = TYPO3.jQuery(container);

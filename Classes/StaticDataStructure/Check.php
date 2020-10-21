@@ -15,12 +15,25 @@ namespace Ppi\TemplaVoilaPlus\StaticDataStructure;
  */
 
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Static DS check
  */
 class Check
 {
+	
+	/**
+     * @var $uriBuilder \TYPO3\CMS\Backend\Routing\UriBuilder 
+     */
+    protected $uriBuilder;
+
+	public function __construct() {
+		$this->uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
+    }
+    
     /**
      * Display message
      *
@@ -42,14 +55,16 @@ class Check
             );
         }
 
-        $link = $this->uriBuilder->buildUriFromRoute(
+        $link = '';
+        // this doesn't work for some reason. but route name is valid
+        /*$link = $this->uriBuilder->buildUriFromRoute(
             'tools_ExtensionmanagerExtensionmanager',
             array(
                 'tx_extensionmanager_tools_extensionmanagerextensionmanager[extensionKey]' => 'templavoilaplus',
                 'tx_extensionmanager_tools_extensionmanagerextensionmanager[action]' => 'show',
                 'tx_extensionmanager_tools_extensionmanagerextensionmanager[controller]' => 'UpdateScript'
             )
-        );
+        );*/
 
         return '
         <div style="position:absolute;top:10px;right:10px; width:300px;z-index:500">
@@ -85,10 +100,15 @@ class Check
      */
     protected function datastructureDbCount()
     {
-        return TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTcountRows(
-            '*',
-            'tx_templavoilaplus_datastructure',
-            'deleted=0'
-        );
+	    $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_templavoilaplus_datastructure');
+	    $queryBuilder
+		    ->getRestrictions()
+		    ->removeAll()
+	        ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+    	return $queryBuilder
+			->select('*')
+			->from('tt_content')
+			->execute()
+			->rowCount();
     }
 }
