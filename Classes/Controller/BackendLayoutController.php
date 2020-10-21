@@ -750,9 +750,14 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                         $script .= "\n" . 'tv_createSortable(\'' . $key . '\',' . $linkedTogether . ');';
                     }
                     $script .= '});});';
-                    // $this->content .= GeneralUtility::wrapJS($script);
-			        $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-			        $pageRenderer->addJsFooterInlineCode('BackendLayoutController_sortable', $script);
+
+                    // make sure it works that way
+	                // update: it won't run properly when tv_createSortable is encapsulated in Require's function. find other way to call this function onload
+                    $this->content .= GeneralUtility::wrapJS($script);
+
+                    // won't attach js anywhere that way! it must be rendered in content on this level, PageRenderer is used in ModuleTemplate and it rebuilds all
+			        // $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+			        // $pageRenderer->addJsFooterInlineCode('BackendLayoutController_sortable', $script);
                 }
             }
 

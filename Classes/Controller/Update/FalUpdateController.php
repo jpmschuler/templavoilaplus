@@ -160,8 +160,8 @@ class FalUpdateController   {
 	            		
 	            		// and here find items from our $migrateFields
 			            foreach ($migrateFields as $fieldId => $fieldTvConf) {
-			            	if (is_string ($lang[$fieldId]['vDEF']))
-			            	if (is_array ($lang[$fieldId]['el']))
+			            	//if (is_string ($lang[$fieldId]['vDEF']))
+			            	//if (is_array ($lang[$fieldId]['el']))
 			                $value = $lang[$fieldId]['vDEF'];
 			                $this->log("--- PROCESS field: {$fieldId}, value: {$value}", 1);
 
