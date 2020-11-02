@@ -1,9 +1,9 @@
 <?php
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'TemplaVoilà! Plus - Classic Edition',
+    'title' => 'TemplaVoilà! Plus - Classic Edition for 10.x',
     'description' => 'Point-and-click, popular and easy template engine for TYPO3. Replacement for old TemplaVoilà!.',
     'category' => 'misc',
-    'version' => '7.3.3w4',
+    'version' => '7.3.3w5',
     'state' => 'excludeFromUpdates',	// pre-beta
     'uploadfolder' => 0,
     'createDirs' => 'uploads/tx_templavoilaplus/',

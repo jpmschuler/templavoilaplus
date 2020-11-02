@@ -28,7 +28,7 @@ class Records implements SingletonInterface
 {
 
     /**
-     * @var \tx_templavoilaplus_module1
+     * @var \Ppi\TemplaVoilaPlus\Module\Mod1\Ajax
      */
     public $pObj;
 
