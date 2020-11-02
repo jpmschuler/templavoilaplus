@@ -497,6 +497,7 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
      */
     public function mainAction(ServerRequestInterface $request = null)
     {
+    	$this->request = $request;
         $this->init();
         $this->main();
 
@@ -608,7 +609,7 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                     if (activate) {
                         $(this).tab(\'show\')
                     } else {
-                        TYPO3.Tabs.storeActiveTab(e.currentTarget.id, \'\');
+                        //TYPO3.Tabs.storeActiveTab(e.currentTarget.id, \'\');
                     }
                     return true;
                 });
@@ -738,21 +739,18 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                 // Create sortables
                 if (is_array($this->sortableContainers)) {
                     $script =
-	                    'console.log("abc");' .
                         'var sortableSource = null;' . "\n"
                         . 'var sortable_containers = ' . json_encode($this->sortableContainers) . ';' . "\n"
                         . 'var sortable_removeHidden = ' . ($this->MOD_SETTINGS['tt_content_showHidden'] !== '0' ? 'false;' : 'true;') . "\n"
-                        . 'var sortable_linkParameters = \'' . $this->link_getParameters() . '\';';
+                        . 'var sortable_linkParameters = \'' . $this->link_getParameters() . '\';'  . "\n\n";
 
                     $linkedTogether = json_encode(array_keys($this->sortableContainers));
                     $script .= 'require([\'jquery\', \'jquery-ui/sortable\'], function ($) {$(function() {';
                     foreach ($this->sortableContainers as $key => $unused) {
                         $script .= "\n" . 'tv_createSortable(\'' . $key . '\',' . $linkedTogether . ');';
                     }
-                    $script .= '});});';
+                    $script .= "\n\n" . '});});';
 
-                    // make sure it works that way
-	                // update: it won't run properly when tv_createSortable is encapsulated in Require's function. find other way to call this function onload
                     $this->content .= GeneralUtility::wrapJS($script);
 
                     // won't attach js anywhere that way! it must be rendered in content on this level, PageRenderer is used in ModuleTemplate and it rebuilds all
@@ -2834,7 +2832,11 @@ class BackendLayoutController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScr
                             // TODO If $newUid==0, than we could create new element. Need to handle it...
                             $redirectLocation = $this->uriBuilder->buildUriFromRoute('record_edit', [
                                 'edit' => ['tt_content' => [$newUid => 'edit']],
-                                'returnUrl' => $redirectLocation
+                                'returnUrl' => (string) $this->uriBuilder->buildUriFromRoutePath(
+                                	$this->request->getQueryParams()['route'], [
+	                                    'id' => $this->request->getQueryParams()['id']
+	                                ]
+                                ),
                             ]);
                         }
                         break;

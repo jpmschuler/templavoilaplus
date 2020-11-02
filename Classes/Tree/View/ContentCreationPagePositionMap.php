@@ -14,6 +14,7 @@ namespace Ppi\TemplaVoilaPlus\Tree\View;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -37,13 +38,14 @@ class ContentCreationPagePositionMap extends \TYPO3\CMS\Backend\Tree\View\Conten
         if (!$parentRecord) {
             return parent::onClickInsertRecord($row, $vv, $moveUid, $pid, $sys_lang);
         }
-        $location = $this->uriBuilder->buildUriFromRoute(
+        $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+        $location = (string)$uriBuilder->buildUriFromRoute(
             'web_txtemplavoilaplusLayout',
             [
                 'id' => $pid,
                 'createNewRecord' => GeneralUtility::_GP('parentRecord'),
             ]
         );
-        return 'window.location.href=' . GeneralUtility::quoteJSvalue($location) . '+document.editForm.defValues.value; return false;';
+        return $this->clientContext . '.location.href=' . GeneralUtility::quoteJSvalue($location) . '+document.editForm.defValues.value; return false;';
     }
 }

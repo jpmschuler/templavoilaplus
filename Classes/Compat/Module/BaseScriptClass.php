@@ -5,6 +5,7 @@ namespace Ppi\TemplaVoilaPlus\Compat\Module;
 
 
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Imaging\IconFactory;
@@ -238,6 +239,12 @@ class BaseScriptClass
      * @var string
      */
     protected $moduleName = '';
+
+
+	/**
+	 * @var ServerRequestInterface $request
+	 */
+    protected $request;
     
     /*******************************************
      *

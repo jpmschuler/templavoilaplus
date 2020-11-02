@@ -1,5 +1,3 @@
-require(["jquery"], function($) {
-
 var browserPos = null;
 var sortableSourceIndex = null;
 var sortableSourceList = null;
@@ -7,7 +5,8 @@ var sortableDestinationIndex = null;
 var sortableDestinationList = null;
 var sortableSourceListInProcess = null;
 
-var TYPO3 = TYPO3 || {}; TYPO3.jQuery = TYPO3.jQuery || jQuery.noConflict(true);
+//var TYPO3 = TYPO3 || {}; TYPO3.jQuery = TYPO3.jQuery || jQuery.noConflict(true);
+// const $ = require('jquery');
 
 function setFormValueOpenBrowser(url, mode, params) {
     var url = url + "&mode=" + mode + "&bparams=" + params;
@@ -15,7 +14,7 @@ function setFormValueOpenBrowser(url, mode, params) {
     browserWin = window.open(url, "templavoilareferencebrowser", "height=350,width=" + (mode == "db" ? 650 : 600) + ",status=0,menubar=0,resizable=1,scrollbars=1");
     browserWin.focus();
 }
-
+    
 function setFormValueFromBrowseWin(fName, value, label, exclusiveValues) {
     if (value) {
         var ret = value.split('_');
@@ -26,6 +25,10 @@ function setFormValueFromBrowseWin(fName, value, label, exclusiveValues) {
     }
 }
 
+function jumpToUrl(URL) {
+    window.location.href = URL;
+    return false;
+}
 
 function setHighlight(id) {
     top.fsMod.recentIds["web"] = id;
@@ -36,117 +39,157 @@ function setHighlight(id) {
     }
 }
 
-function editList(table, idList) {
-    var list = "";
-
-    // Checking how many is checked, how many is not
-    var pointer = 0;
-    var pos = idList.indexOf(",");
-    while (pos != -1) {
-        if (cbValue(table + "|" + idList.substr(pointer, pos - pointer))) {
-            list += idList.substr(pointer, pos - pointer) + ",";
+    function editList(table, idList) {
+        var list = "";
+    
+        // Checking how many is checked, how many is not
+        var pointer = 0;
+        var pos = idList.indexOf(",");
+        while (pos != -1) {
+            if (cbValue(table + "|" + idList.substr(pointer, pos - pointer))) {
+                list += idList.substr(pointer, pos - pointer) + ",";
+            }
+            pointer = pos + 1;
+            pos = idList.indexOf(",", pointer);
         }
-        pointer = pos + 1;
-        pos = idList.indexOf(",", pointer);
+        if (cbValue(table + "|" + idList.substr(pointer))) {
+            list += idList.substr(pointer) + ",";
+        }
+    
+        return list ? list : idList;
     }
-    if (cbValue(table + "|" + idList.substr(pointer))) {
-        list += idList.substr(pointer) + ",";
+    
+    // --- drag & drop ----
+    
+    var sortable_currentItem;
+    // Needs also:
+    // sortable_linkParameters = mod1/index.php -- $this->link_getParameters()
+    
+    function sortable_unhideRecord(it, command) {
+        jumpToUrl(command);
     }
-
-    return list ? list : idList;
-}
-
-
-function sortable_unlinkRecordCallBack(obj)
-{
-    var $parentSortable = TYPO3.jQuery(obj).parents('.ui-sortable');
-    obj.remove();
-    sortable_updateItemButtons('#' + $parentSortable[0].id)
-}
-
-function sortable_unlinkRecord(pointer, id, elementPointer)
-{
-    var item = TYPO3.jQuery('#' + id)[0];
-    showInProgress(item);
-
-    new TYPO3.jQuery.ajax({
-        url: TYPO3.settings.ajaxUrls['templavoilaplus_record_unlink'],
-        type: 'post',
-        cache: false,
-        data: {
-            'unlink': pointer
-        },
-        success: function(result) {
-            // @TODO insert unlinked element into sidebar, so it is viewable without reloading?
-            // This was functional in older TV releases.
-
-            // Fade out unlinked element
-            new TYPO3.jQuery('#' + id).fadeTo('fast', 0.0, function() {
-                sortable_unlinkRecordCallBack(TYPO3.jQuery(this))
+    
+    function sortable_hideRecord(it, command) {
+        if (!sortable_removeHidden) {
+            return jumpToUrl(command);
+        }
+    
+        while ((typeof it.className == "undefined") || (it.className.search(/tpm-element(?!-)/) == -1)) {
+            it = it.parentNode;
+        }
+        new Ajax.Request(command);
+        new Effect.Fade(it,
+            { duration: 0.5,
+              afterFinish: sortable_hideRecordCallBack
             });
-        },
-        error: function(result) {
-            showError(item);
-        }
-    });
-}
-
-function sortable_unlinkRecordSidebarCallBack(pointer) {
-    var childNodes = $('tx_templavoilaplus_mod1_sidebar-bar').childElements();
-    var innerHeight = 0;
-    for (var i = 0; i < childNodes.length; i++) {
-        innerHeight += childNodes[i].getHeight();
     }
-    $('tx_templavoilaplus_mod1_sidebar-bar').morph(
-        { height: innerHeight + 'px'},
-        {
-            duration: 0.1,
-            afterFinish: function() {
-                $('tx_templavoilaplus_mod1_sidebar-bar').setStyle({height: 'auto'});
-                if (pointer && $(pointer)) {
-                    $(pointer).highlight();
-                }
-            }
+    
+    function sortable_hideRecordCallBack(obj) {
+        var el = obj.element;
+    
+        while (el.lastChild) {
+            el.removeChild(el.lastChild);
         }
-    );
-}
+    }
 
-function sortable_updateItemButtons(listSelector)
-{
-    var sortOrder = TYPO3.jQuery(listSelector).sortable('toArray');
-    sortOrder.forEach(function(itemId, position) {
-        var newPos = sortable_containers[listSelector] + (position + 1);
-        TYPO3.jQuery('#' + itemId).find('a').each(function() {
-            $this = TYPO3.jQuery(this);
-            if ($this.hasClass('tpm-new')) {
-                this.setAttribute('onclick', this.getAttribute('onclick').replace(/&parentRecord=[^&]+/, "&parentRecord=" + newPos));
-            }
-            if ($this.hasClass('tpm-browse')) {
-                if (this.rel) {
-                    this.rel = this.rel.replace(/&destination=[^&]+/, "&destination=" + newPos);
-                }
-            }
-            if ($this.hasClass('tpm-delete')) {
-                this.href = this.href.replace(/&deleteRecord=[^&]+/, "&deleteRecord=" + newPos);
-            }
-            if ($this.hasClass('tpm-unlink')) {
-                this.href = this.href.replace(/unlinkRecord\('[^']+'/, "unlinkRecord(\'" + newPos + "\'");
-            }
-            if ($this.hasClass('tpm-cut') || $this.hasClass('tpm-copy') || $this.hasClass('tpm-ref') ) {
-                //this.setAttribute('onclick',  encodeURI(decodeURI(this.getAttribute('onclick')).replace(/CB\[el\]\[([^\]]+)\]=[^&]+/, "CB[el][$1]=" + newPos)));
-
-                this.setAttribute('onclick',  this.getAttribute('onclick').replace(/CB\[el\]\[([^\]]+)\]=[^&]+/, "CB[el][$1]=" + newPos));
-            }
-            if ($this.hasClass('tpm-pasteAfter') || $this.hasClass('tpm-pasteSubRef')) {
-                this.href = this.href.replace(/&destination=[^&]+/, "&destination=" + newPos);
-            }
-            if ($this.hasClass('tpm-makeLocal')) {
-                this.href = this.href.replace(/&makeLocalRecord=[^&]+/, "&makeLocalRecord=" + newPos);
+    function sortable_unlinkRecordCallBack(obj)
+    {
+        const $ = require('jquery');
+        
+        var $parentSortable = $(obj).parents('.ui-sortable');
+        obj.remove();
+        sortable_updateItemButtons('#' + $parentSortable[0].id)
+    }
+    
+    function sortable_unlinkRecord(pointer, id, elementPointer)
+    {
+        const $ = require('jquery');
+        
+        var item = $('#' + id)[0];
+        showInProgress(item);
+    
+        new $.ajax({
+            url: TYPO3.settings.ajaxUrls['templavoilaplus_record_unlink'],
+            type: 'post',
+            cache: false,
+            data: {
+                'unlink': pointer
+            },
+            success: function(result) {
+                // @TODO insert unlinked element into sidebar, so it is viewable without reloading?
+                // This was functional in older TV releases.
+    
+                // Fade out unlinked element
+                new $('#' + id).fadeTo('fast', 0.0, function() {
+                    sortable_unlinkRecordCallBack($(this))
+                });
+            },
+            error: function(result) {
+                showError(item);
             }
         });
-    });
-}
-
+    }
+    
+    function sortable_unlinkRecordSidebarCallBack(pointer) {
+        const $ = require('jquery');
+        
+        var childNodes = $('tx_templavoilaplus_mod1_sidebar-bar').childElements();
+        var innerHeight = 0;
+        for (var i = 0; i < childNodes.length; i++) {
+            innerHeight += childNodes[i].getHeight();
+        }
+        $('tx_templavoilaplus_mod1_sidebar-bar').morph(
+            { height: innerHeight + 'px'},
+            {
+                duration: 0.1,
+                afterFinish: function() {
+                    $('tx_templavoilaplus_mod1_sidebar-bar').setStyle({height: 'auto'});
+                    if (pointer && $(pointer)) {
+                        $(pointer).highlight();
+                    }
+                }
+            }
+        );
+    }
+    
+    function sortable_updateItemButtons(listSelector)
+    {
+        const $ = require('jquery');
+        
+        var sortOrder = $(listSelector).sortable('toArray');
+        sortOrder.forEach(function(itemId, position) {
+            var newPos = sortable_containers[listSelector] + (position + 1);
+            $('#' + itemId).find('a').each(function() {
+                $this = $(this);
+                if ($this.hasClass('tpm-new')) {
+                    this.setAttribute('onclick', this.getAttribute('onclick').replace(/&parentRecord=[^&]+/, "&parentRecord=" + newPos));
+                }
+                if ($this.hasClass('tpm-browse')) {
+                    if (this.rel) {
+                        this.rel = this.rel.replace(/&destination=[^&]+/, "&destination=" + newPos);
+                    }
+                }
+                if ($this.hasClass('tpm-delete')) {
+                    this.href = this.href.replace(/&deleteRecord=[^&]+/, "&deleteRecord=" + newPos);
+                }
+                if ($this.hasClass('tpm-unlink')) {
+                    this.href = this.href.replace(/unlinkRecord\('[^']+'/, "unlinkRecord(\'" + newPos + "\'");
+                }
+                if ($this.hasClass('tpm-cut') || $this.hasClass('tpm-copy') || $this.hasClass('tpm-ref') ) {
+                    //this.setAttribute('onclick',  encodeURI(decodeURI(this.getAttribute('onclick')).replace(/CB\[el\]\[([^\]]+)\]=[^&]+/, "CB[el][$1]=" + newPos)));
+    
+                    this.setAttribute('onclick',  this.getAttribute('onclick').replace(/CB\[el\]\[([^\]]+)\]=[^&]+/, "CB[el][$1]=" + newPos));
+                }
+                if ($this.hasClass('tpm-pasteAfter') || $this.hasClass('tpm-pasteSubRef')) {
+                    this.href = this.href.replace(/&destination=[^&]+/, "&destination=" + newPos);
+                }
+                if ($this.hasClass('tpm-makeLocal')) {
+                    this.href = this.href.replace(/&makeLocalRecord=[^&]+/, "&makeLocalRecord=" + newPos);
+                }
+            });
+        });
+    }
+    
 function sortable_update(element, sortOrder)
 {
     // NO +1, sortOrder starts with 0 and TV+ starts with 1, but we need index of element
@@ -169,6 +212,8 @@ function sortable_start(list, element, sortOrder)
 
 function sortable_stop(item, placeholder)
 {
+    const $ = require('jquery');
+
     var source = sortable_containers[sortableSourceList] + sortableSourceIndex;
     var destination = sortable_containers[sortableDestinationList] + sortableDestinationIndex;
 
@@ -176,7 +221,7 @@ function sortable_stop(item, placeholder)
 
     sortableSourceListInProcess = sortableSourceList;
 
-    new TYPO3.jQuery.ajax({
+    new $.ajax({
         async: true,
         url: TYPO3.settings.ajaxUrls['templavoilaplus_record_move'],
         type: 'post',
@@ -194,7 +239,7 @@ function sortable_stop(item, placeholder)
             }
         },
         error: function(result) {
-            TYPO3.jQuery(sortableSourceListInProcess).sortable( "cancel" );
+            $(sortableSourceListInProcess).sortable( "cancel" );
             showError(item);
         },
         complete: function(result) {
@@ -213,10 +258,11 @@ function sortable_receive(list)
     sortableDestinationList = '#' + list.id;
 }
 
-// causes error on call, have to be callable from global namespace somehow
 function tv_createSortable(container, connectWith)
 {
-    var $sortingContainer = TYPO3.jQuery(container);
+    const $ = require('jquery');
+
+    var $sortingContainer = $(container);
     $sortingContainer.sortable(
     {
         connectWith: connectWith, /* '.ui-sortable' ?? */
@@ -227,17 +273,17 @@ function tv_createSortable(container, connectWith)
         opacity: 0.5,
         revert: true,
         start: function (event, ui) {
-            sortable_start(TYPO3.jQuery(this)[0], ui.item[0], TYPO3.jQuery(this).sortable('toArray'));
+            sortable_start($(this)[0], ui.item[0], $(this).sortable('toArray'));
         },
         update: function (event, ui) {
-            sortable_update(ui.item[0], TYPO3.jQuery(this).sortable('toArray'));
+            sortable_update(ui.item[0], $(this).sortable('toArray'));
         },
         stop: function (event, ui) {
             sortable_stop(ui.item[0], ui.placeholder);
-            TYPO3.jQuery(TYPO3.jQuery(ui.item[0]).data('lastParent')).after(ui.item[0]);
+            $($(ui.item[0]).data('lastParent')).after(ui.item[0]);
         },
         receive: function (event, ui) {
-            sortable_receive(TYPO3.jQuery(this)[0]);
+            sortable_receive($(this)[0]);
         },
         forcePlaceholderSize: true,
         placeholder: 'drag-placeholder'
@@ -247,67 +293,32 @@ function tv_createSortable(container, connectWith)
 
 function showInProgress(item)
 {
-    TYPO3.jQuery('.tpm-titlebar', item)
+    const $ = require('jquery');
+    
+    $('.tpm-titlebar', item)
         .addClass("toYellow");
 }
 
 function showSuccess(item)
 {
+    const $ = require('jquery');
+    
     // flash green
-    TYPO3.jQuery('.tpm-titlebar', item)
+    $('.tpm-titlebar', item)
         .off()
         .addClass("flashGreen")
         .removeClass("toYellow")
-        .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).removeClass("flashGreen"); });
+        .one("animationend webkitAnimationEnd", function(){ $('.tpm-titlebar', item).removeClass("flashGreen"); });
 }
 
 // flash red
 function showError(item)
 {
-    TYPO3.jQuery('.tpm-titlebar', item)
+    const $ = require('jquery');
+    
+    $('.tpm-titlebar', item)
         .off()
         .addClass("flashRed")
         .removeClass("toYellow")
-        .one("animationend webkitAnimationEnd", function(){ TYPO3.jQuery('.tpm-titlebar', item).removeClass("flashRed"); });
-}
-
-});
-
-function jumpToUrl(URL) {
-    window.location.href = URL;
-    return false;
-}
-
-function sortable_hideRecord(it, command) {
-    if (!sortable_removeHidden) {
-        return jumpToUrl(command);
-    }
-
-    while ((typeof it.className == "undefined") || (it.className.search(/tpm-element(?!-)/) == -1)) {
-        it = it.parentNode;
-    }
-    new Ajax.Request(command);
-    new Effect.Fade(it,
-        { duration: 0.5,
-          afterFinish: sortable_hideRecordCallBack
-        });
-}
-
-// --- drag & drop ----
-
-var sortable_currentItem;
-// Needs also:
-// sortable_linkParameters = mod1/index.php -- $this->link_getParameters()
-
-function sortable_unhideRecord(it, command) {
-    jumpToUrl(command);
-}
-
-
-function sortable_hideRecordCallBack(obj) {
-    var el = obj.element;
-
-    while (el.lastChild) {
-        el.removeChild(el.lastChild);
-    }
+        .one("animationend webkitAnimationEnd", function(){ $('.tpm-titlebar', item).removeClass("flashRed"); });
 }
