@@ -1,5 +1,5 @@
 <?php
-namespace \Ppi\TemplaVoilaPlus\Ext\Backend\Form\Element;
+namespace Ppi\TemplaVoilaPlus\Ext\Backend\Form\Element;
 
 use TYPO3\CMS\Backend\Form\InlineStackProcessor;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;

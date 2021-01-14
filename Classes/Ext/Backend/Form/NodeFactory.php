@@ -1,6 +1,6 @@
 <?php
 
-namespace \Ppi\TemplaVoilaPlus\Ext\Backend\Form;
+namespace Ppi\TemplaVoilaPlus\Ext\Backend\Form;
 
 
 /**

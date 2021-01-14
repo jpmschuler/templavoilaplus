@@ -56,8 +56,8 @@ And for now I abandoned this idea. (You can find my migrator controller and try 
 	-- __Solution 2. semi-automatic:__ *(if you have many irre fces and recreating them by hand is not an option)*
 	
 	My B-plan was to extract & __restore that missing TCA Group/File type__ - so I took code parts from 9.5 and integrated
-	them as xclasses beside current 10.4 parts. __You can find that__ in Classes/Ext/Backend and try to run uncommenting
-	xclass registers in Configuration - works well for me.
+	them as xclasses beside current 10.4 parts. You can __try to run this__ using ext conf option __compatibility.restoreTCAGroupFileType = 1__
+	(ext manager / localconf). The code is in Classes/Ext/Backend/. Works well for me.
 	As for now it basically works as expected and doesn't conflict with anything. (though needs some tests to be sure).
 	This approach is kinda regressive, but I can't see a way to insist the full fal migration when the system just doesn't
 	want to cooperate.
