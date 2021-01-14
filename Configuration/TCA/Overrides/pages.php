@@ -99,13 +99,13 @@ if ($_EXTCONF['enable']['selectDataStructure']) {
         'pages',
         'tx_templavoilaplus_ds,tx_templavoilaplus_to',
         '',
-        'replace:backend_layout'
+        'before:layout'
     );
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',
         'tx_templavoilaplus_next_ds,tx_templavoilaplus_next_to',
         '',
-        'replace:backend_layout_next_level'
+        'before:layout'
     );
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',

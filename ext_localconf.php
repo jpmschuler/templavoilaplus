@@ -5,13 +5,13 @@ $_EXTCONF = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
 
 // Register "XCLASS" of FlexFormTools for language parsing
 // Done also in TableConfigurationPostProcessingHook!
-if (version_compare(TYPO3_version, '8.5.0', '>=')) {
+// if (version_compare(TYPO3_version, '8.5.0', '>=')) {
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class]['className']
         = \Ppi\TemplaVoilaPlus\Configuration\FlexForm\FlexFormTools8::class;
-} else {
+/*} else {
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class]['className']
         = \Ppi\TemplaVoilaPlus\Configuration\FlexForm\FlexFormTools::class;
-}
+}*/
 
 // Register XCLASSes
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Tree\View\ContentCreationPagePositionMap::class]['className']
@@ -40,10 +40,11 @@ tt_content.templavoilaplus_pi1 {
     templateName = Generic
 }
 
-tt_content.menu.20.3 = USER
-tt_content.menu.20.3.userFunc = Ppi\TemplaVoilaPlus\Controller\SectionIndexController->mainAction
-tt_content.menu.20.3.select.where >
-tt_content.menu.20.3.indexField.data = register:tx_templavoilaplus_pi1.current_field
+# after moving to fsc doesn\'t make sense that way. if you need, migrate this to fsc
+# tt_content.menu.20.3 = USER
+# tt_content.menu.20.3.userFunc = Ppi\TemplaVoilaPlus\Controller\SectionIndexController->mainAction
+# tt_content.menu.20.3.select.where >
+# tt_content.menu.20.3.indexField.data = register:tx_templavoilaplus_pi1.current_field
 
 ', 'defaultContentRendering');
 
@@ -136,15 +137,16 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks'][\Ppi\TemplaVoila
 
 
 
-// uncomment to restore that missing non-fal tca file/group field
+// restore that missing non-fal tca file/group field / see readme
+if ($GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus']['compatibility']['restoreTCAGroupFileType'])   {
 
-//$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\FormDataProvider\TcaGroup::class] = [
-//	'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\FormDataProvider\TcaGroup::class
-//];
-//$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\Element\GroupElement::class] = [
-//	'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\Element\GroupElement::class
-//];
-//$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\NodeFactory::class] = [
-//	'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\NodeFactory::class
-//];
-
+	$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\FormDataProvider\TcaGroup::class] = [
+		'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\FormDataProvider\TcaGroup::class
+	];
+	$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\Element\GroupElement::class] = [
+		'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\Element\GroupElement::class
+	];
+	$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\NodeFactory::class] = [
+		'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\NodeFactory::class
+	];
+}
