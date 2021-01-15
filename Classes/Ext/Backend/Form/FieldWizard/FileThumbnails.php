@@ -1,6 +1,6 @@
 <?php
 declare(strict_types = 1);
-namespace \Ppi\TemplaVoilaPlus\Ext\Backend\Form\FieldWizard;
+namespace Ppi\TemplaVoilaPlus\Ext\Backend\Form\FieldWizard;
 
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
@@ -61,7 +61,11 @@ class FileThumbnails extends AbstractNode
                     ) {
                         $thumbnailsHtml[] = '<li>';
                         $thumbnailsHtml[] =     '<span class="thumbnail">';
-                        $thumbnailsHtml[] =         $fileObject->process(ProcessedFile::CONTEXT_IMAGEPREVIEW, [])->getPublicUrl(true);
+                        // w mod
+                        $imgConf['file'] = $fileObject->process(ProcessedFile::CONTEXT_IMAGEPREVIEW, [])->getUid();
+						$imgConf['file.']['treatIdAsReference'] = 1;
+						$thumbnailsHtml[] =         '<img src="'. $fileObject->process(ProcessedFile::CONTEXT_IMAGEPREVIEW, [])-> getPublicUrl(true) . '" alt="[FAL TV]">';
+						// /w mod
                         $thumbnailsHtml[] =     '</span>';
                         $thumbnailsHtml[] = '</li>';
                     }
