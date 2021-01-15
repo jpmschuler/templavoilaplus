@@ -73,6 +73,64 @@ class BackendUtility extends \TYPO3\CMS\Backend\Utility\BackendUtility
 	        // Warning, you started to use fal relations in templavoila!
 	        // in this case, if you convert all finally to fal, this class and it call can be removed.
 	        // if not, this part of code should be filled with code from current src
+	        
+	        // w: 10.4 src
+	        
+	        foreach ($fileReferences as $fileReferenceObject) {
+                // Do not show previews of hidden references
+                if ($fileReferenceObject->getProperty('hidden')) {
+                    continue;
+                }
+                $fileObject = $fileReferenceObject->getOriginalFile();
+
+                if ($fileObject->isMissing()) {
+                    $thumbData .= '<span class="label label-danger">'
+                        . htmlspecialchars(
+                            static::getLanguageService()->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:warning.file_missing')
+                        )
+                        . '</span>&nbsp;' . htmlspecialchars($fileObject->getName()) . '<br />';
+                    continue;
+                }
+
+                // Preview web image or media elements
+                if ($GLOBALS['TYPO3_CONF_VARS']['GFX']['thumbnails']
+                    && GeneralUtility::inList(
+                        $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'],
+                        $fileReferenceObject->getExtension()
+                    )
+                ) {
+                    $cropVariantCollection = CropVariantCollection::create((string)$fileReferenceObject->getProperty('crop'));
+                    $cropArea = $cropVariantCollection->getCropArea();
+                    $imageUrl = self::getThumbnailUrl($fileObject->getUid(), [
+                        'width' => $sizeParts[0],
+                        'height' => $sizeParts[1] . 'c',
+                        'crop' => $cropArea->isEmpty() ? null : $cropArea->makeAbsoluteBasedOnFile($fileReferenceObject),
+                        '_context' => $cropArea->isEmpty() ? ProcessedFile::CONTEXT_IMAGEPREVIEW : ProcessedFile::CONTEXT_IMAGECROPSCALEMASK
+                    ]);
+                    $attributes = [
+                        'src' => $imageUrl,
+                        'width' => (int)$sizeParts[0],
+                        'height' => (int)$sizeParts[1],
+                        'alt' => $fileReferenceObject->getName(),
+                    ];
+                    $imgTag = '<img ' . GeneralUtility::implodeAttributes($attributes, true) . $tparams . '/>';
+                } else {
+                    // Icon
+                    $imgTag = '<span title="' . htmlspecialchars($fileObject->getName()) . '">'
+                        . $iconFactory->getIconForResource($fileObject, Icon::SIZE_SMALL)->render()
+                        . '</span>';
+                }
+                if ($linkInfoPopup) {
+                    // relies on module 'TYPO3/CMS/Backend/ActionDispatcher'
+                    $attributes = GeneralUtility::implodeAttributes([
+                        'data-dispatch-action' => 'TYPO3.InfoWindow.showItem',
+                        'data-dispatch-args-list' => '_FILE,' . (int)$fileObject->getUid(),
+                    ], true);
+                    $thumbData .= '<a href="#" ' . $attributes . '>' . $imgTag . '</a> ';
+                } else {
+                    $thumbData .= $imgTag;
+                }
+            }
 	         
         } else {
             // Find uploaddir automatically
@@ -85,7 +143,23 @@ class BackendUtility extends \TYPO3\CMS\Backend\Utility\BackendUtility
             $thumbData = '';
             foreach ($thumbs as $theFile) {
                 if ($theFile) {
-                    $fileName = trim($uploaddir . '/' . $theFile, '/');
+                	
+                	
+	                // wolo mod - fix:
+		            // I noticed recently, that group/file type fields in FCEs after update/new are stored as fal uids instead of filename,
+		            // even though of the type is not fal. It causes problem with BE thumbnails, but for some reason it still works in FE (with both ways)
+		            // These uids are not resolved here above as relations, so I'm adding detecting and handling them here.
+	                if (\TYPO3\CMS\Core\Utility\MathUtility::canBeInterpretedAsInteger($theFile))   {
+						$fileRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Resource\FileRepository::class);
+						$fileName = $fileRepository->findByIdentifier($theFile)->getPublicUrl();
+		            }
+	                else    {
+                        $fileName = trim($uploaddir . '/' . $theFile, '/');
+	                }
+	                
+                    //$fileName = trim($uploaddir . '/' . $theFile, '/');
+	                // /wolo mod
+	                
                     try {
                         /** @var File $fileObject */
                         $fileObject = ResourceFactory::getInstance()->retrieveFileOrFolderObject($fileName);
