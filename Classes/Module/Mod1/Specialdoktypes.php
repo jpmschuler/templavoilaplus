@@ -129,9 +129,9 @@ class Specialdoktypes implements SingletonInterface
             case PageRepository::SHORTCUT_MODE_FIRST_SUBPAGE:
                 // First subpage of current/selected page
                 $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-                $result = $pageRepository->getFirstWebPage((int)$pageRecord['shortcut'] ?: (int)$pageRecord['uid']);
+                $result = $pageRepository->getMenu((int)$pageRecord['shortcut'] ?: (int)$pageRecord['uid'],'uid','sorting');
                 if ($result) {
-                    $targetUid = $result['uid'];
+                    $targetUid = current($result)['uid'];
                 }
                 break;
             case PageRepository::SHORTCUT_MODE_PARENT_PAGE:

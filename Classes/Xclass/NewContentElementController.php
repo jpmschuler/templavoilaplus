@@ -35,28 +35,37 @@ class NewContentElementController extends \TYPO3\CMS\Backend\Controller\ContentE
      */
     function prepareContent(string $clientContext): void
     {
-        $lang = $this->getLanguageService();
+        //$lang = $this->getLanguageService();
         $this->getButtons();
         $hasAccess = $this->id && is_array($this->pageInfo);
         if ($hasAccess) {
-            // Init position map object:
-            $posMap = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Tree\View\ContentCreationPagePositionMap::class);
-            $posMap->cur_sys_language = $this->sys_language;
-            // If a column is pre-set:
+            // If a column is pre-set
             if (isset($this->colPos)) {
-                if ($this->uid_pid < 0) {
-                    $row = [];
-                    $row['uid'] = abs($this->uid_pid);
-                } else {
-                    $row = '';
+            	// if opened from Templavoila page module (must check, because it brakes classic/flux new content wizard)
+        	    if (strstr($_REQUEST['returnUrl'], 'templavoila'))	{
+            		// Init position map object:
+		            $posMap = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Tree\View\ContentCreationPagePositionMap::class);
+		            $posMap->cur_sys_language = $this->sys_language;
+	
+	                if ($this->uid_pid < 0) {
+	                    $row = [];
+	                    $row['uid'] = abs($this->uid_pid);
+	                } else {
+	                    $row = '';
+	                }
+	                $onClickEvent = $posMap->onClickInsertRecord(
+	                    $row,
+	                    $this->colPos,
+	                    '',
+	                    $this->uid_pid,
+	                    $this->sys_language
+	                );
                 }
-                $onClickEvent = $posMap->onClickInsertRecord(
-                    $row,
-                    $this->colPos,
-                    '',
-                    $this->uid_pid,
-                    $this->sys_language
-                );
+				// default typo behaviour
+                else	{
+                	$onClickEvent = $this->onClickInsertRecord($clientContext);
+                }
+				// tv mod end
             } else {
                 $onClickEvent = '';
             }
@@ -85,13 +94,6 @@ class NewContentElementController extends \TYPO3\CMS\Backend\Controller\ContentE
                     $hookObject->manipulateWizardItems($wizardItems, $this);
                 }
             // Add document inline javascript
-            $this->moduleTemplate->addJavaScriptCode(
-                'NewContentElementWizardInlineJavascript',
-                '
-				function goToalt_doc() {
-					' . $onClickEvent . '
-				}'
-            );
 
 
             // Traverse items for the wizard.
@@ -114,7 +116,7 @@ class NewContentElementController extends \TYPO3\CMS\Backend\Controller\ContentE
                     ];
                     $key = count($menuItems) - 1;
                 } else {
-                    $content = '';
+                    //$content = '';
 
                     if (!$onClickEvent) {
                         // Radio button:
@@ -126,7 +128,7 @@ class NewContentElementController extends \TYPO3\CMS\Backend\Controller\ContentE
                     } else {
                         $aOnClick = "document.editForm.defValues.value=unescape('" . rawurlencode($wInfo['params']) . "');goToalt_doc();";
                     }
-// todo check this - in what case is that used?
+
                     // Go to DataHandler directly instead of FormEngine
                     if ($wInfo['saveAndClose'] ?? false) {
                         $urlParams = [];
@@ -141,7 +143,6 @@ class NewContentElementController extends \TYPO3\CMS\Backend\Controller\ContentE
                         $url = $this->uriBuilder->buildUriFromRoute('tce_db', $urlParams);
                         $aOnClick = 'list_frame.location.href=' . GeneralUtility::quoteJSvalue((string)$url) . '; return false';
                     }
-
                     $icon = $this->moduleTemplate->getIconFactory()->getIcon($wInfo['iconIdentifier'])->render();
 
                     $this->menuItemView->assignMultiple([
