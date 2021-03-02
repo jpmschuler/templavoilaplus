@@ -93,7 +93,6 @@ class NewContentElementController extends \TYPO3\CMS\Backend\Controller\ContentE
                     }
                     $hookObject->manipulateWizardItems($wizardItems, $this);
                 }
-            // Add document inline javascript
 
 
             // Traverse items for the wizard.
