@@ -129,7 +129,7 @@ class DataStructureUpdateHandler
     protected function saveChange($key, $table, $field, $dataProtXML, $filebased = false)
     {
         if ($filebased) {
-            $path = PATH_site . $key;
+            $path = \TYPO3\CMS\Core\Core\Environment::getPublicPath().'/' . $key;
             GeneralUtility::writeFile($path, $dataProtXML);
         } else {
             $tce = GeneralUtility::makeInstance(\TYPO3\CMS\Core\DataHandling\DataHandler::class);

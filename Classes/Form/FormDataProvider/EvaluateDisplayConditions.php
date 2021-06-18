@@ -269,6 +269,7 @@ class EvaluateDisplayConditions
                     );
                 }
 
+                if (is_array($sheetConfiguration['ROOT']['el']))
                 foreach ($sheetConfiguration['ROOT']['el'] as $flexField => $flexConfiguration) {
                     // Unset per flex field
                     if (is_array($flexConfiguration['displayCond'])) {

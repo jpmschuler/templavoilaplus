@@ -16,6 +16,8 @@ namespace Ppi\TemplaVoilaPlus\Service;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\RelationHandler;
+use TYPO3\CMS\Core\Database\Query\Restriction\BackendWorkspaceRestriction;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
@@ -166,7 +168,8 @@ class ApiService
         /* @var $tce DataHandler */
 
         // set default TCA values specific for the page and user
-        $TCAdefaultOverride = BackendUtility::getModTSconfig($newRecordPid, 'TCAdefaults');
+	    $pageTsConfig = BackendUtility::getPagesTSconfig($newRecordPid);
+        $TCAdefaultOverride = $pageTsConfig['TCAdefaults.'];
         if (is_array($TCAdefaultOverride['properties'])) {
             $tce->setDefaultsFromUserTS($TCAdefaultOverride['properties']);
         }
@@ -558,7 +561,7 @@ class ApiService
                 $elementUids[] = $elementUid;
 
                 // Reduce the list to local elements to make sure that references are kept instead of moving the referenced record
-                $localRecords = $this->getDatabaseConnection()->exec_SELECTgetRows('uid,pid', 'tt_content', 'uid IN (' . implode(',', $elementUids) . ') AND pid=' . (int)$sourcePID . ' ' . BackendUtility::deleteClause('tt_content'));
+                $localRecords = $this->getDatabaseConnection()->exec_SELECTgetRows('uid,pid', 'tt_content', 'uid IN (' . implode(',', $elementUids) . ') AND pid=' . (int)$sourcePID . ' ' . ' AND NOT deleted');
                 if (!empty($localRecords) && is_array($localRecords)) {
                     $cmdArray = array();
                     foreach ($localRecords as $localRecord) {
@@ -1385,7 +1388,6 @@ class ApiService
     {
         $dataStructureArr = [];
 
-        if (version_compare(TYPO3_version, '8.5.0', '>=')) {
             $flexFormTools = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class);
             $dataStructureIdentifier = $flexFormTools->getDataStructureIdentifier(
                 $GLOBALS['TCA'][$table]['columns']['tx_templavoilaplus_flex'],
@@ -1395,31 +1397,6 @@ class ApiService
             );
             $dataStructureArr = $flexFormTools->parseDataStructureByIdentifier($dataStructureIdentifier);
             $expandedDataStructureArr = $dataStructureArr['sheets'];
-        } else {
-            $dataStructureArr = TemplaVoilaUtility::getFlexFormDS($GLOBALS['TCA'][$table]['columns']['tx_templavoilaplus_flex']['config'], $row, $table);
-
-            $expandedDataStructureArr = array();
-            if (!is_array($dataStructureArr)) {
-                $dataStructureArr = array();
-            }
-
-            if (is_array($dataStructureArr['sheets'])) {
-                foreach (array_keys($dataStructureArr['sheets']) as $sheetKey) {
-                    // This GeneralUtility::resolveSheetDefInDS needs no changes, this code path is unused for TYPO3 >= 8.5.0
-                    list ($sheetDataStructureArr, $sheet) = GeneralUtility::resolveSheetDefInDS($dataStructureArr, $sheetKey);
-                    if ($sheet == $sheetKey) {
-                        $expandedDataStructureArr[$sheetKey] = $sheetDataStructureArr;
-                    }
-                }
-            } else {
-                $sheetKey = 'sDEF';
-                // This GeneralUtility::resolveSheetDefInDS needs no changes, this code path is unused for TYPO3 >= 8.5.0
-                list ($sheetDataStructureArr, $sheet) = GeneralUtility::resolveSheetDefInDS($dataStructureArr, $sheetKey);
-                if ($sheet == $sheetKey) {
-                    $expandedDataStructureArr[$sheetKey] = $sheetDataStructureArr;
-                }
-            }
-        }
 
         return $expandedDataStructureArr;
     }
@@ -1444,7 +1421,7 @@ class ApiService
             "$tTO.*",
             "$tTO LEFT JOIN $tDS ON $tTO.datastructure = $tDS.uid",
             "$tTO.pid=" . (int)$storageFolderPID . " AND $tDS.scope=1" .
-            BackendUtility::deleteClause($tTO) . BackendUtility::deleteClause($tDS) .
+            ' AND NOT '.$tTO.'.deleted  AND NOT ' . $tDS . '.deleted' .
             BackendUtility::versioningPlaceholderClause($tTO) . BackendUtility::versioningPlaceholderClause($tDS)
         );
         if (!$res) {
@@ -1535,7 +1512,6 @@ class ApiService
 
         // If element is a Flexible Content Element (or a page) then look at the content inside:
         if ($table == 'pages' || $table == $this->rootTable || ($table == 'tt_content' && $row['CType'] == 'templavoilaplus_pi1')) {
-            if (version_compare(TYPO3_version, '8.5.0', '>=')) {
                 $flexFormTools = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class);
                 $dataStructureIdentifier = $flexFormTools->getDataStructureIdentifier(
                     $GLOBALS['TCA'][$table]['columns']['tx_templavoilaplus_flex'],
@@ -1544,9 +1520,6 @@ class ApiService
                     $row
                 );
                 $rawDataStructureArr = $flexFormTools->parseDataStructureByIdentifier($dataStructureIdentifier);
-            } else {
-                $rawDataStructureArr = TemplaVoilaUtility::getFlexFormDS($GLOBALS['TCA'][$table]['columns']['tx_templavoilaplus_flex']['config'], $row, $table);
-            }
 
             if (!is_array($rawDataStructureArr)) {
                 return array();
@@ -1747,7 +1720,10 @@ class ApiService
      */
     public function getContentTree_getLocalizationInfoForElement($contentTreeArr, &$tt_content_elementRegister)
     {
-        $localizationInfoArr = array();
+        $localizationInfoArr = [];
+        $languageField = $GLOBALS['TCA']['tt_content']['ctrl']['languageField'];
+        $transOrigPointerField = $GLOBALS['TCA']['tt_content']['ctrl']['transOrigPointerField'];
+
         if ($contentTreeArr['el']['table'] == 'tt_content' && $contentTreeArr['el']['sys_language_uid'] <= 0) {
             // Finding translations of this record and select overlay record:
             $fakeElementRow = array('uid' => $contentTreeArr['el']['uid'], 'pid' => $contentTreeArr['el']['pid']);
@@ -1759,14 +1735,15 @@ class ApiService
                 'pid=' . $fakeElementRow['pid'] .
                 ' AND sys_language_uid>0' .
                 ' AND l18n_parent=' . (int)$contentTreeArr['el']['uid'] .
-                BackendUtility::deleteClause('tt_content')
+                ' AND NOT deleted'
             );
 
             $attachedLocalizations = array();
             while (true == ($olrow = $this->getDatabaseConnection()->sql_fetch_assoc($res))) {
                 BackendUtility::workspaceOL('tt_content', $olrow);
-                if (!isset($attachedLocalizations[$olrow['sys_language_uid']])) {
-                    $attachedLocalizations[$olrow['sys_language_uid']] = $olrow['uid'];
+                    if (!isset($attachedLocalizations[$olrow[$languageField]])) {
+                        $attachedLocalizations[$olrow[$languageField]] = $olrow['uid'];
+                    }
                 }
             }
 
@@ -1783,7 +1760,7 @@ class ApiService
                         } elseif ($contentTreeArr['el']['CType'] !== 'templavoilaplus_pi1' || $this->isLocalizationLinkEnabledForFCE($contentTreeArr)) { // Only localize content elements with "Default" language set
                             if ((int) $contentTreeArr['el']['sys_language_uid'] === 0) {
                                 $localizationInfoArr[$sys_language_uid] = array();
-                                $localizationInfoArr[$sys_language_uid]['mode'] = 'localize';
+                                $localizationInfoArr[$sys_la1737nguage_uid]['mode'] = 'localize';
                             }
                         } elseif (!$contentTreeArr['ds_meta']['langDisable'] && (int) $contentTreeArr['el']['sys_language_uid'] === -1) { // Flexible Content Elements (with [All] language set)
                             $localizationInfoArr[$sys_language_uid] = array();
@@ -1795,7 +1772,6 @@ class ApiService
                     }
                 }
             }
-        }
 
         return $localizationInfoArr;
     }
@@ -1912,6 +1888,13 @@ class ApiService
      */
     public function loadWebsiteLanguages()
     {
+    	$languages = TemplaVoilaUtility::getAvailableLanguages();
+    	
+    	foreach ($languages as $language) {
+            $this->allSystemWebsiteLanguages['all_lKeys'][] = 'l' . $language['ISOcode'];
+            $this->allSystemWebsiteLanguages['all_vKeys'][] = 'v' . $language['ISOcode'];
+        }
+/*    
         $this->allSystemWebsiteLanguages = array();
         $this->allSystemWebsiteLanguages['all_lKeys'][] = 'lDEF';
         $this->allSystemWebsiteLanguages['all_vKeys'][] = 'vDEF';
@@ -1920,7 +1903,7 @@ class ApiService
         $this->allSystemWebsiteLanguages['rows'] = $this->getDatabaseConnection()->exec_SELECTgetRows(
             'sys_language.*',
             'sys_language',
-            '1=1' . BackendUtility::deleteClause('sys_language'),
+            '1=1' . ' AND NOT deleted',
             '',
             'uid',
             '',
@@ -1938,6 +1921,7 @@ class ApiService
                 }
             }
         }
+*/
     }
 
     /**
@@ -1962,12 +1946,23 @@ class ApiService
     public function getModWebTSconfig($pageId)
     {
         if (!isset($this->cachedModWebTSconfig[$pageId])) {
-            $modTSconfig = BackendUtility::getModTSconfig($pageId, 'mod.web_txtemplavoilaplusLayout');
+        	$pageTsConfig = BackendUtility::getPagesTSconfig($pageId);
+            $modTSconfig = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.'];
             $this->cachedModWebTSconfig[$pageId] = $modTSconfig;
         }
 
         return $this->cachedModWebTSconfig[$pageId];
     }
+
+    public function getBackendRootline($uid): array
+    {
+        $rootLine = BackendUtility::BEgetRootLine($uid, '', true);
+        foreach ($rootLine as $key => $rootLineRecord) {
+            $rootLine[$key] = BackendUtility::getRecordWSOL('pages', $rootLineRecord['uid']);
+        }
+        return $rootLine;
+    }
+
 
     /**
      * @return \TYPO3\CMS\Core\Database\DatabaseConnection

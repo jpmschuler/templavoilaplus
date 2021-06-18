@@ -5,6 +5,7 @@ $tempColumns = array(
     'tx_templavoilaplus_ds' => array(
         'exclude' => 1,
         'label' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tx_templavoilaplus_ds',
+        'l10n_mode' => 'exclude',
         'config' => array(
             'type' => 'select',
             'renderType' => 'selectSingle',
@@ -24,6 +25,7 @@ $tempColumns = array(
         'exclude' => 1,
         'label' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tx_templavoilaplus_to',
         'displayCond' => 'FIELD:tx_templavoilaplus_ds:REQ:true',
+        'l10n_mode' => 'exclude',
         'config' => array(
             'type' => 'select',
             'renderType' => 'selectSingle',
@@ -41,6 +43,7 @@ $tempColumns = array(
     'tx_templavoilaplus_next_ds' => array(
         'exclude' => 1,
         'label' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tx_templavoilaplus_next_ds',
+        'l10n_mode' => 'exclude',
         'config' => array(
             'type' => 'select',
             'renderType' => 'selectSingle',
@@ -59,6 +62,7 @@ $tempColumns = array(
     'tx_templavoilaplus_next_to' => array(
         'exclude' => 1,
         'label' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tx_templavoilaplus_next_to',
+        'l10n_mode' => 'exclude',
         'displayCond' => 'FIELD:tx_templavoilaplus_next_ds:REQ:true',
         'config' => array(
             'type' => 'select',
@@ -77,6 +81,7 @@ $tempColumns = array(
     'tx_templavoilaplus_flex' => array(
         'exclude' => 1,
         'label' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/locallang_db.xlf:pages.tx_templavoilaplus_flex',
+        'l10n_mode' => 'exclude',
         'config' => array(
             'type' => 'flex',
             'ds_pointerField' => 'tx_templavoilaplus_ds',
@@ -88,19 +93,19 @@ $tempColumns = array(
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns('pages', $tempColumns);
 
-$_EXTCONF = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
-if ($_EXTCONF['enable.']['selectDataStructure']) {
+$_EXTCONF = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
+if ($_EXTCONF['enable']['selectDataStructure']) {
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',
         'tx_templavoilaplus_ds,tx_templavoilaplus_to',
         '',
-        'replace:backend_layout'
+        'before:layout'
     );
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',
         'tx_templavoilaplus_next_ds,tx_templavoilaplus_next_to',
         '',
-        'replace:backend_layout_next_level'
+        'before:layout'
     );
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',
@@ -114,7 +119,7 @@ if ($_EXTCONF['enable.']['selectDataStructure']) {
     }
     $GLOBALS['TCA']['pages']['ctrl']['requestUpdate'] .= 'tx_templavoilaplus_ds,tx_templavoilaplus_next_ds';
 } else {
-    if (!$_EXTCONF['enable.']['oldPageModule']) {
+    if (!$_EXTCONF['enable']['oldPageModule']) {
         \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
             'pages',
             'tx_templavoilaplus_to',

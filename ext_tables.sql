@@ -79,7 +79,9 @@ CREATE TABLE tt_content (
     tx_templavoilaplus_ds tinytext,
     tx_templavoilaplus_to int(11) DEFAULT '0' NOT NULL,
     tx_templavoilaplus_flex mediumtext,
-    tx_templavoilaplus_pito int(11) DEFAULT '0' NOT NULL
+    tx_templavoilaplus_pito int(11) DEFAULT '0' NOT NULL,
+    # uncomment if needed
+    # tx_templavoilaplus_fal_migrated tinyint(4) unsigned DEFAULT '0' NOT NULL,
 );
 
 #

@@ -27,12 +27,10 @@ final class DataStructureUtility
     {
         $indentation = 0;
 
-        $conf = unserialize(
-            $GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']
-        );
+        $conf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
 
-        if (isset($conf['ds.']['indentation'])) {
-            $indentation = (int)$conf['ds.']['indentation'];
+        if (isset($conf['ds']['indentation'])) {
+            $indentation = (int)$conf['ds']['indentation'];
         }
         return '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>'
         . LF

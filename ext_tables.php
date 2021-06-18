@@ -3,18 +3,18 @@ defined('TYPO3_MODE') or die();
 
 if (TYPO3_MODE === 'BE') {
 
-    if (version_compare(TYPO3_version, '8.6.0', '>=')) {
-        $GLOBALS['TYPO3_CONF_VARS']['BE']['ContextMenu']['ItemProviders'][$_EXTKEY]
+    //if (version_compare(TYPO3_version, '8.6.0', '>=')) {
+        $GLOBALS['TYPO3_CONF_VARS']['BE']['ContextMenu']['ItemProviders']['templavoilaplus']
             = \Ppi\TemplaVoilaPlus\ContextMenu\ItemProvider::class;
-    } else {
+    /*} else {
         // Adding click menu item:
         $GLOBALS['TBE_MODULES_EXT']['xMOD_alt_clickmenu']['extendCMclasses'][] = [
             'name' => \Ppi\TemplaVoilaPlus\Service\ClickMenu\MainClickMenu::class
         ];
-    }
+    }*/
 
     $GLOBALS['TBE_MODULES_EXT']['xMOD_db_new_content_el']['addElClasses'][\Ppi\TemplaVoilaPlus\Hooks\WizardItems::class]
-        = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath($_EXTKEY) . 'Classes/Hooks/WizardItems.php';
+        = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Classes/Hooks/WizardItems.php';
 
     // Adding backend modules:
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addModule(
@@ -24,8 +24,8 @@ if (TYPO3_MODE === 'BE') {
         '',
         [
             'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Icon/Modules/PageModuleIcon.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendLayout.xlf',
+            'icon' => 'EXT:templavoilaplus/Resources/Public/Icon/Modules/PageModuleIcon.svg',
+            'labels' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/BackendLayout.xlf',
             'configureModuleFunction' => [\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::class, 'configureModule'],
 
             'name' => 'web_txtemplavoilaplusLayout',
@@ -42,8 +42,8 @@ if (TYPO3_MODE === 'BE') {
         '',
         [
             'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Icon/Modules/AdministrationModuleIcon.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendControlCenter.xlf',
+            'icon' => 'EXT:templavoilaplus/Resources/Public/Icon/Modules/AdministrationModuleIcon.svg',
+            'labels' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/BackendControlCenter.xlf',
             'configureModuleFunction' => [\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::class, 'configureModule'],
 
             'name' => 'web_txtemplavoilaplusCenter',
@@ -52,9 +52,9 @@ if (TYPO3_MODE === 'BE') {
         ]
     );
 
-    $_EXTCONF = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+    $_EXTCONF = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     // Remove default Page module (layout) manually if wanted:
-    if (!$_EXTCONF['enable.']['oldPageModule']) {
+    if (!$_EXTCONF['enable']['oldPageModule']) {
         $tmp = $GLOBALS['TBE_MODULES']['web'];
         $GLOBALS['TBE_MODULES']['web'] = str_replace(',,', ',', str_replace('layout', '', $tmp));
         unset ($GLOBALS['TBE_MODULES']['_PATHS']['web_layout']);

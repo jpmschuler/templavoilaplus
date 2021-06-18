@@ -32,7 +32,7 @@ $GLOBALS['LANG']->includeLLFile(
  * @author Kasper Skaarhoj <kasper@typo3.com>
  * @co-author Robert Lemke <robert@typo3.org>
  */
-class BackendFlexformCleanerController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
+class BackendFlexformCleanerController extends \Ppi\TemplaVoilaPlus\Compat\Module\BaseScriptClass
 {
     /**
      * Array with tablename, uid and fieldname
@@ -82,7 +82,7 @@ class BackendFlexformCleanerController extends \TYPO3\CMS\Backend\Module\BaseScr
         $this->iconFactory = $this->moduleTemplate->getIconFactory();
         $this->buttonBar = $this->moduleTemplate->getDocHeaderComponent()->getButtonBar();
 
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
 
     /*******************************************

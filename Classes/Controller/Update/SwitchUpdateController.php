@@ -50,7 +50,7 @@ class SwitchUpdateController extends AbstractUpdateController
             $count = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTcountRows(
                 '*',
                 $table,
-                '1=1 ' . BackendUtility::deleteClause($table)
+                '1=1 ' . ' AND NOT deleted'
             );
             if ($count) {
                 return true;

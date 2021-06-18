@@ -54,7 +54,7 @@ class AbstractUpdateController
         $classPartsName = explode('\\', get_class($this));
         $this->setTemplate('Update/' . substr(array_pop($classPartsName), 0, -16));
 
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
 
     public function setTemplate($template)
@@ -77,7 +77,7 @@ class AbstractUpdateController
             'is8orNewer' => version_compare(TYPO3_version, '8.0.0', '>=') ? true : false,
             'is9orNewer' => version_compare(TYPO3_version, '9.0.0', '>=') ? true : false,
             'typo3Version' => TYPO3_version,
-            'useStaticDS' => ($this->extConf['staticDS.']['enable']),
+            'useStaticDS' => ($this->extConf['staticDS']['enable']),
         ]);
         return $this->fluid->render();
     }

@@ -45,7 +45,7 @@ class DataHandler
      */
     public function __construct()
     {
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
 
     /********************************************
@@ -76,7 +76,7 @@ class DataHandler
             return;
         }
 
-        if (!$this->extConf['enable.']['selectDataStructure']) {
+        if (!$this->extConf['enable']['selectDataStructure']) {
             // Update DS if TO was changed
             $this->updateDataSourceFromTemplateObject($table, $incomingFieldArray, $reference->BE_USER);
         }
@@ -248,7 +248,7 @@ page.10.disableExplosivePreview = 1';
                                 $parentRecord = BackendUtility::getRecordWSOL($destinationFlexformPointer['table'], $destinationFlexformPointer['uid'], 'uid,pid,tx_templavoilaplus_flex');
                                 $currentReferencesArr = $templaVoilaAPI->flexform_getElementReferencesFromXML($parentRecord['tx_templavoilaplus_flex'], $destinationFlexformPointer);
                                 if (count($currentReferencesArr)) {
-                                    $rows = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTgetRows('uid,' . $sorting_field, $table, 'uid IN (' . implode(',', $currentReferencesArr) . ')' . BackendUtility::deleteClause($table));
+                                    $rows = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTgetRows('uid,' . $sorting_field, $table, 'uid IN (' . implode(',', $currentReferencesArr) . ')' . ' AND NOT deleted');
                                     $sort = array($reference->substNEWwithIDs[$id] => -$sorting);
                                     foreach ($rows as $row) {
                                         $sort[$row['uid']] = $row[$sorting_field];

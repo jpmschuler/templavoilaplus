@@ -10,7 +10,7 @@
                 <source>DEPRECATED will be removed with 8. Enable data structure selection: If this checkbox is checked, page and content elements will have data structure selector as they had in older TemplaVoilà versions. If current installation has very few template objects, it is recommended to have this checkbox unchecked.</source>
             </trans-unit>
             <trans-unit id="enable.renderFCEHeader" xml:space="preserve">
-                <source>Enable Header for FCE's:If this checkbox is checked the header of Content Element type FCE will be rendered like headers of other Content Elements.</source>
+                <source>Enable Header for FCE's ! THIS OPTION DOESN'T WORK ANYMORE! FCE contents are now built on FSC's lib.contentElement, which includes header always : ...so you must hide every content's header manually (Header -> Type - Hidden) or run this query to hide all at once -  UPDATE tt_content  SET header_layout = 100  WHERE CType = 'templavoilaplus_pi1'</source>
             </trans-unit>
             <trans-unit id="ds.indentation" xml:space="preserve">
                 <source>Defines the XML indentation in the Data Structures.:This is usefull for static Data Structures. Number smaller then zero means no indentation, zero means using tabs and number larger then zero means number of space chars.</source>

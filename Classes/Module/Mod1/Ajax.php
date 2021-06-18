@@ -16,6 +16,7 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -45,7 +46,7 @@ class Ajax
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function moveRecord(ServerRequestInterface $request, ResponseInterface $response)
+    public function moveRecord(ServerRequestInterface $request, ResponseInterface $response = null)
     {
         $postParams = $request->getParsedBody();
         $sourcePointer = $this->apiObj->flexform_getPointerFromString($postParams['source']);
@@ -53,7 +54,7 @@ class Ajax
 
         $result = $this->apiObj->moveElement($sourcePointer, $destinationPointer);
 
-        $response->getBody()->write(json_encode($result));
+        $response = new HtmlResponse(json_encode($result));
         if (!$result) {
             $response = $response->withStatus(406);
         }
@@ -67,14 +68,14 @@ class Ajax
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function unlinkRecord(ServerRequestInterface $request, ResponseInterface $response)
+    public function unlinkRecord(ServerRequestInterface $request, ResponseInterface $response = null)
     {
         $postParams = $request->getParsedBody();
         $unlinkPointer = $this->apiObj->flexform_getPointerFromString($postParams['unlink']);
 
         $result = $this->apiObj->unlinkElement($unlinkPointer);
 
-        $response->getBody()->write(json_encode($result));
+        $response = new HtmlResponse(json_encode($result));
         if (!$result) {
             $response = $response->withStatus(406);
         }

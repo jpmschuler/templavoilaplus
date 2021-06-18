@@ -14,6 +14,7 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Ppi\TemplaVoilaPlus\Controller\BackendLayoutController;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\SingletonInterface;
@@ -41,7 +42,7 @@ class Clipboard implements SingletonInterface
     /**
      * A pointer to the parent object, that is the templavoila page module script. Set by calling the method init() of this class.
      *
-     * @var \tx_templavoilaplus_module1
+     * @var BackendLayoutController
      */
     public $pObj;
 
@@ -52,7 +53,7 @@ class Clipboard implements SingletonInterface
      * Also takes the GET variable "CB" and submits it to the t3lib clipboard class which handles all
      * the incoming information and stores it in the user session.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the parent object ($this)
+     * @param BackendLayoutController $pObj Reference to the parent object ($this)
      *
      * @return void
      */
@@ -120,7 +121,7 @@ class Clipboard implements SingletonInterface
 
             // If we have no flexform reference pointing to the element, we create a short flexform pointer pointing to the record directly:
             if (!is_array($clipboardElementPointer)) {
-                list ($clipboardElementTable, $clipboardElementUid) = explode('|', $clipboardElementTableAndUid);
+                [$clipboardElementTable, $clipboardElementUid] = explode('|', $clipboardElementTableAndUid);
                 $pointToTheSameRecord = ($elementRecord['uid'] == $clipboardElementUid);
             } else {
                 unset($clipboardElementPointer['targetCheckUid']);
@@ -225,7 +226,7 @@ class Clipboard implements SingletonInterface
         $clipboardElementPointer = $this->pObj->apiObj->flexform_getValidPointer($clipboardElementPointerString);
 
         // If we have no flexform reference pointing to the element, we create a short flexform pointer pointing to the record directly:
-        list ($clipboardElementTable, $clipboardElementUid) = explode('|', $clipboardElementTableAndUid);
+        [$clipboardElementTable, $clipboardElementUid] = explode('|', $clipboardElementTableAndUid);
         if (!is_array($clipboardElementPointer)) {
             if ($clipboardElementTable != 'tt_content') {
                 return '';
@@ -324,7 +325,7 @@ class Clipboard implements SingletonInterface
             'pid=' . (int)$pid . ' ' .
             'AND uid NOT IN (' . implode(',', $usedUids) . ') ' .
             'AND ( t3ver_state NOT IN (1,3) OR (t3ver_wsid > 0 AND t3ver_wsid = ' . (int)TemplaVoilaUtility::getBackendUser()->workspace . ') )' .
-            BackendUtility::deleteClause('tt_content') .
+            'AND NOT deleted' .
             BackendUtility::versioningPlaceholderClause('tt_content'),
             '',
             'uid'

@@ -149,14 +149,14 @@ class OldTemplavoilaUpdateController extends StepUpdateController
         return $this->getDatabaseConnection()->exec_SELECTcountRows(
             '*',
             $table,
-            '1=1 ' . BackendUtility::deleteClause($table)
+            '1=1 ' . ' AND NOT deleted'
         );
     }
 
     // Migrations
     private function migrateConfiguration()
     {
-        $oldconfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoila']);
+        $oldconfig = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
         if (is_array($oldconfig) && count($oldconfig) > 1) {
             // Config available so migrate
             $newconfig = serialize($oldconfig);
@@ -183,12 +183,12 @@ class OldTemplavoilaUpdateController extends StepUpdateController
             && $this->getDatabaseConnection()->sql_query(
                 'INSERT INTO tx_templavoilaplus_datastructure (' . $fieldsDs . ')'
                 . ' SELECT ' . $fieldsDs . ' FROM tx_templavoila_datastructure WHERE 1=1 '
-                . BackendUtility::deleteClause('tx_templavoila_datastructure')
+                . ' AND NOT deleted'
             )
             && $this->getDatabaseConnection()->sql_query(
                 'INSERT INTO tx_templavoilaplus_tmplobj (' . $fieldsTo . ')'
                 . ' SELECT ' . $fieldsTo . ' FROM tx_templavoila_tmplobj WHERE 1=1 '
-                . BackendUtility::deleteClause('tx_templavoila_tmplobj')
+                . ' AND NOT deleted'
             );
     }
 
@@ -412,8 +412,8 @@ class OldTemplavoilaUpdateController extends StepUpdateController
 
     public function migrateFiles()
     {
-        $pathOld = PATH_site . 'uploads/tx_templavoila/';
-        $pathNew = PATH_site . 'uploads/tx_templavoilaplus/';
+        $pathOld = \TYPO3\CMS\Core\Core\Environment::getPublicPath().'/' . 'uploads/tx_templavoila/';
+        $pathNew = \TYPO3\CMS\Core\Core\Environment::getPublicPath().'/' . 'uploads/tx_templavoilaplus/';
 
         // Check or create new directory existence
         if (!is_dir($pathNew)) {

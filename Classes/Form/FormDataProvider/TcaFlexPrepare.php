@@ -14,8 +14,10 @@ namespace Ppi\TemplaVoilaPlus\Form\FormDataProvider;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Backend\Exception;
 use TYPO3\CMS\Backend\Form\FormDataProviderInterface;
 use TYPO3\CMS\Core\Migrations\TcaMigration;
+use TYPO3\CMS\Core\Preparations\TcaPreparation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -148,7 +150,8 @@ class TcaFlexPrepare implements FormDataProviderInterface
     protected function migrateFlexformTcaDataStructureElements(array $result, $fieldName)
     {
         $modifiedDataStructure = $result['processedTca']['columns'][$fieldName]['config']['ds'];
-        $modifiedDataStructure = $this->migrateFlexformTcaRecursive($modifiedDataStructure, $result['tableName'], $fieldName);
+        // I believe not needed anymore
+        //$modifiedDataStructure = $this->migrateFlexformTcaRecursive($modifiedDataStructure, $result['tableName'], $fieldName);
         $result['processedTca']['columns'][$fieldName]['config']['ds'] = $modifiedDataStructure;
         return $result;
     }
@@ -181,10 +184,11 @@ class TcaFlexPrepare implements FormDataProviderInterface
                     $migratedTca = $tcaMigration->migrate($dummyTca);
                     $messages = $tcaMigration->getMessages();
                     if (!empty($messages)) {
-                        $context = 'FormEngine did an on-the-fly migration of a flex form data structure. This is deprecated and will be removed'
-                            . ' with TYPO3 CMS 8. Merge the following changes into the flex form definition of table "' . $table . '"" in field "' . $fieldName . '"":';
+                        $context = 'FormEngine did an on-the-fly migration of a flex form data structure. This is deprecated and will be removed.'
+                            . ' Merge the following changes into the flex form definition of table "' . $table . '"" in field "' . $fieldName . '"":';
+                        // die ('stop: ' . $messages);
                         array_unshift($messages, $context);
-                        GeneralUtility::deprecationLog(implode(LF, $messages));
+                        trigger_error(implode(LF, $messages), E_USER_DEPRECATED);
                     }
                     $newSubStructure[$subKey] = $migratedTca['dummyTable']['columns']['dummyField'];
                 }

@@ -154,7 +154,7 @@ class StaticDataStructuresHandler
      */
     public function templateObjectItemsProcFunc(array &$params, \TYPO3\CMS\Backend\Form\FormDataProvider\TcaSelectItems &$pObj)
     {
-        $this->conf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->conf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
 
         if ($this->conf['enable.']['selectDataStructure']) {
             $this->templateObjectItemsProcFuncForCurrentDS($params, $pObj);
@@ -294,26 +294,21 @@ class StaticDataStructuresHandler
         // Check for alternative storage folder
         $field = $params['table'] == 'pages' ? 'uid' : 'pid';
 
-        $modTSConfig = BackendUtility::getModTSconfig($params['row'][$field], 'tx_templavoilaplus.storagePid');
-        $modTSConfigDeprecated = BackendUtility::getModTSconfig($params['row'][$field], 'tx_templavoila.storagePid');
+        // $modTSConfig = BackendUtility::getModTSconfig($params['row'][$field], 'tx_templavoilaplus.storagePid');
+        $pageTsConfig = BackendUtility::getPagesTSconfig($params['row'][$field]);
+	    $modTSConfig = $pageTsConfig['tx_templavoilaplus.']['storagePid.'];
 
         if (is_array($modTSConfig) && MathUtility::canBeInterpretedAsInteger($modTSConfig['value'])) {
             $storagePid = (int)$modTSConfig['value'];
-        } elseif (is_array($modTSConfigDeprecated)
-            && MathUtility::canBeInterpretedAsInteger($modTSConfigDeprecated['value'])
-        ) {
-            GeneralUtility::deprecationLog(
-                'TemplaVoila Plus: tx_templavoila.storagePid is deprecated. Use tx_templavoilaplus.storagePid instead.'
-            );
-            $storagePid = (int)$modTSConfigDeprecated['value'];
         } else {
             // @TODO Deprecate this part, configuration in pageTS should be enough
             $rootLine = $this->BEgetRootLine($params['row'][$field], '', true);
             foreach ($rootLine as $rC) {
                 if (!empty($rC['storage_pid'])) {
-                    GeneralUtility::deprecationLog(
+                    trigger_error(
                         'TemplaVoila Plus: The field storage_pid is deprecated.'
-                        . ' Instead use tx_templavoilaplus.storagePid in page TypoScript.'
+                        . ' Instead use tx_templavoilaplus.storagePid in page TypoScript.',
+	                    E_USER_DEPRECATED
                     );
                     $storagePid = (int)$rC['storage_pid'];
                     break;
@@ -381,7 +376,7 @@ class StaticDataStructuresHandler
     protected function getPageForRootline($uid, $clause, $workspaceOL)
     {
         $db = $this->getDatabaseConnection();
-        $res = $db->exec_SELECTquery('pid,uid,storage_pid,t3ver_oid,t3ver_wsid', 'pages', 'uid=' . (int)$uid . ' ' . BackendUtility::deleteClause('pages') . ' ' . $clause);
+        $res = $db->exec_SELECTquery('pid,uid,storage_pid,t3ver_oid,t3ver_wsid', 'pages', 'uid=' . (int)$uid . ' ' . ' AND NOT deleted' . ' ' . $clause);
         $row = $db->sql_fetch_assoc($res);
         if ($row) {
             $newLocation = false;
@@ -434,7 +429,8 @@ class StaticDataStructuresHandler
     protected function getRemoveItems($params, $field)
     {
         $pid = $params['row'][$params['table'] == 'pages' ? 'uid' : 'pid'];
-        $modTSConfig = BackendUtility::getModTSconfig($pid, 'TCEFORM.' . $params['table'] . '.' . $field . '.removeItems');
+        $pageTSConfig = BackendUtility::getPagesTSconfig($pid);
+        $modTSConfig = $pageTSConfig['TCEFORM.'][$params['table'] . '.'][$field . '.removeItems'];
 
         return GeneralUtility::trimExplode(',', $modTSConfig['value'], true);
     }
@@ -451,7 +447,9 @@ class StaticDataStructuresHandler
     protected function getShowAdminAllItems($params, $field)
     {
         $pid = $params['row'][$params['table'] == 'pages' ? 'uid' : 'pid'];
-        $modTSConfig = BackendUtility::getModTSconfig($pid, 'TCEFORM.' . $params['table'] . '.' . $field . '.showAdminAllItems');
+        $pageTsConfig = BackendUtility::getPagesTSconfig($pid);
+        $modTSConfig = $pageTsConfig['TCEFORM.'][$params['table'] . '.'][$field . '.']['showAdminAllItems.'];
+        // $modTSConfig = BackendUtility::getModTSconfig($pid, 'TCEFORM.' . $params['table'] . '.' . $field . '.showAdminAllItems');
 
         return (bool) $modTSConfig['value'];
     }

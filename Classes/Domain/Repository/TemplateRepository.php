@@ -14,6 +14,8 @@ namespace Ppi\TemplaVoilaPlus\Domain\Repository;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Doctrine\DBAL\Query\QueryBuilder;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
@@ -48,15 +50,23 @@ class TemplateRepository implements \TYPO3\CMS\Core\SingletonInterface
      */
     public function getTemplatesByDatastructure(\Ppi\TemplaVoilaPlus\Domain\Model\AbstractDataStructure $ds, $storagePid = 0)
     {
-        $toList = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTgetRows(
-            'tx_templavoilaplus_tmplobj.uid',
-            'tx_templavoilaplus_tmplobj',
-            'tx_templavoilaplus_tmplobj.datastructure=' . TemplaVoilaUtility::getDatabaseConnection()->fullQuoteStr($ds->getKey(), 'tx_templavoilaplus_tmplobj')
-            . ((int)$storagePid > 0 ? ' AND tx_templavoilaplus_tmplobj.pid = ' . (int)$storagePid : '')
-            . \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause('tx_templavoilaplus_tmplobj')
-            . ' AND pid!=-1 '
-            . \TYPO3\CMS\Backend\Utility\BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_tmplobj')
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_templavoilaplus_tmplobj');
+        $queryBuilder
+            ->select('uid')
+            ->from('tx_templavoilaplus_tmplobj')
+            ->where(
+                $queryBuilder->expr()->eq('datastructure', $queryBuilder->createNamedParameter($ds->getKey()))
         );
+        if ((int)$storagePid > 0) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($storagePid, \PDO::PARAM_INT))
+            );
+        }
+        $toList = $queryBuilder
+            ->execute()
+            ->fetchAll();
+
         $toCollection = array();
         foreach ($toList as $toRec) {
             $toCollection[] = $this->getTemplateByUid($toRec['uid']);
@@ -102,7 +112,7 @@ class TemplateRepository implements \TYPO3\CMS\Core\SingletonInterface
             'tx_templavoilaplus_tmplobj',
             'tx_templavoilaplus_tmplobj.parent=' . TemplaVoilaUtility::getDatabaseConnection()->fullQuoteStr($to->getKey(), 'tx_templavoilaplus_tmplobj')
             . ((int)$storagePid > 0 ? ' AND tx_templavoilaplus_tmplobj.pid = ' . (int)$storagePid : ' AND pid!=-1')
-            . \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause('tx_templavoilaplus_tmplobj')
+            . ' AND NOT deleted'
             . \TYPO3\CMS\Backend\Utility\BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_tmplobj')
         );
         $toCollection = array();
@@ -128,7 +138,7 @@ class TemplateRepository implements \TYPO3\CMS\Core\SingletonInterface
             'tx_templavoilaplus_tmplobj',
             '1=1'
             . ((int)$storagePid > 0 ? ' AND tx_templavoilaplus_tmplobj.pid = ' . (int)$storagePid : ' AND tx_templavoilaplus_tmplobj.pid!=-1')
-            . \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause('tx_templavoilaplus_tmplobj')
+            . ' AND NOT deleted'
             . \TYPO3\CMS\Backend\Utility\BackendUtility::versioningPlaceholderClause('tx_templavoilaplus_tmplobj')
         );
         $toCollection = array();
@@ -162,19 +172,25 @@ class TemplateRepository implements \TYPO3\CMS\Core\SingletonInterface
      */
     public function getTemplateStoragePids()
     {
-        $res = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTquery(
-            'pid',
-            'tx_templavoilaplus_tmplobj',
-            'pid>=0' . \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause('tx_templavoilaplus_tmplobj'),
-            'pid'
+    	/** @var QueryBuilder $queryBuilder */
+    	$queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_templavoilaplus_tmplobj');
+        $queryBuilder
+            ->select('pid')
+            ->from('tx_templavoilaplus_tmplobj')
+            ->where(
+                $queryBuilder->expr()->gte('pid', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT))
         );
-        $list = array();
-        while ($res && false !== ($row = TemplaVoilaUtility::getDatabaseConnection()->sql_fetch_assoc($res))) {
-            $list[] = $row['pid'];
+        
+        $list = [];
+        foreach($queryBuilder
+            ->execute()
+            ->fetchAll()
+	             as $row)   {
+        	$list[] = $row['pid'];
         }
-        TemplaVoilaUtility::getDatabaseConnection()->sql_free_result($res);
 
-        return $list;
+        return array_unique($list);
     }
 
     /**
@@ -184,12 +200,17 @@ class TemplateRepository implements \TYPO3\CMS\Core\SingletonInterface
      */
     public function getTemplateCountForPid($pid)
     {
-        $toCnt = TemplaVoilaUtility::getDatabaseConnection()->exec_SELECTgetRows(
-            'count(*) as cnt',
-            'tx_templavoilaplus_tmplobj',
-            'pid=' . (int)$pid . \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause('tx_templavoilaplus_tmplobj')
-        );
+    	/** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder $queryBuilder */
+    	$queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_templavoilaplus_tmplobj');
+        $queryBuilder
+            ->select('title')
+            ->from('tx_templavoilaplus_tmplobj')
+            ->where(
+                $queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($pid, \PDO::PARAM_INT)));
 
-        return $toCnt[0]['cnt'];
+        return $queryBuilder
+            ->execute()
+            ->rowCount();
     }
 }

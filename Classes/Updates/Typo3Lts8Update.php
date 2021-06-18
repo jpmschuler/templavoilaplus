@@ -39,7 +39,7 @@ class Typo3Lts8Update extends AbstractUpdate
 
     public function __construct()
     {
-        $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
+        $this->extConf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
     }
 
     /**
@@ -62,7 +62,7 @@ class Typo3Lts8Update extends AbstractUpdate
         $result = false;
         $description = 'Changes needed for DataStructures to work with TYPO3 v8 LTS or newer';
 
-        if ($this->extConf['staticDS.']['enable'])
+        if ($this->extConf['staticDS']['enable'])
         {
             // If static DS is in use we need to migrate the file pointer
             $description .= '<br />Need to migrate the file pointer for Static Data Structures';
@@ -81,7 +81,7 @@ class Typo3Lts8Update extends AbstractUpdate
      */
     public function performUpdate(array &$dbQueries, &$customMessage)
     {
-        if ($this->extConf['staticDS.']['enable'])
+        if ($this->extConf['staticDS']['enable'])
         {
             $this->migrateStaticDsFilePointer($dbQueries);
             $customMessage .= 'Migrated file pointer for Static Data Structures';

@@ -83,7 +83,7 @@ class StaticDataStructure extends AbstractDataStructure
             'tx_templavoilaplus_tmplobj',
             'tx_templavoilaplus_tmplobj.datastructure='
                 . TemplaVoilaUtility::getDatabaseConnection()->fullQuoteStr($this->filename, 'tx_templavoilaplus_tmplobj')
-                . \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause('tx_templavoilaplus_tmplobj'),
+                . ' AND NOT deleted',
             'pid'
         );
 

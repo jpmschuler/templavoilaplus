@@ -22,3 +22,6 @@ staticDS.path_page = fileadmin/templates/ds/page/
 
 #cat=static DS; type=user[Ppi\TemplaVoilaPlus\StaticDataStructure\Check->displayMessage]; label=LLL:EXT:templavoilaplus/Resources/Private/Language/PluginConfiguration.xlf:staticDS.updater
 updateMessage=0
+
+#cat=compatibility; type=boolean; label=Restore oldschool TCA group file type (xclasses, extracted from 9.5 src). See readme for details
+compatibility.restoreTCAGroupFileType = 0

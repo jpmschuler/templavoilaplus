@@ -16,6 +16,7 @@ namespace Ppi\TemplaVoilaPlus\Module\Cm1;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 use Ppi\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
@@ -32,12 +33,12 @@ class Ajax
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function getDisplayFileContent(ServerRequestInterface $request, ResponseInterface $response)
+    public function getDisplayFileContent(ServerRequestInterface $request, ResponseInterface $response = null)
     {
         $session = TemplaVoilaUtility::getBackendUser()->getSessionData($request->getQueryParams()['key']);
         $content = GeneralUtility::getUrl(GeneralUtility::getFileAbsFileName($session['displayFile']));
 
-        $response->getBody()->write(json_encode($content));
+        $response = new HtmlResponse(json_encode($content));
         return $response;
     }
 }

@@ -1,17 +1,17 @@
 <?php
 defined('TYPO3_MODE') or die();
 // Unserializing the configuration so we can use it here
-$_EXTCONF = unserialize($_EXTCONF);
+$_EXTCONF = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus'];
 
 // Register "XCLASS" of FlexFormTools for language parsing
 // Done also in TableConfigurationPostProcessingHook!
-if (version_compare(TYPO3_version, '8.5.0', '>=')) {
+// if (version_compare(TYPO3_version, '8.5.0', '>=')) {
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class]['className']
         = \Ppi\TemplaVoilaPlus\Configuration\FlexForm\FlexFormTools8::class;
-} else {
+/*} else {
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class]['className']
         = \Ppi\TemplaVoilaPlus\Configuration\FlexForm\FlexFormTools::class;
-}
+}*/
 
 // Register XCLASSes
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Tree\View\ContentCreationPagePositionMap::class]['className']
@@ -26,16 +26,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Controller\Cont
 // Language diff updating in flex
 $GLOBALS['TYPO3_CONF_VARS']['BE']['flexFormXMLincludeDiffBase'] = true;
 
-$renderFceHeader = '';
-if ($_EXTCONF['enable.']['renderFCEHeader']) {
-    $renderFceHeader = '
-    10 < lib.stdheader';
-    if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('fluid_styled_content')) {
-        $renderFceHeader = '
-        10 =< lib.fluidContent
-        10.templateName = Header';
-    }
-}
 
 // Adding the two plugins TypoScript:
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript('templavoilaplus', 'setup', '
@@ -44,16 +34,17 @@ plugin.tx_templavoilaplus_pi1 = USER
 plugin.tx_templavoilaplus_pi1.userFunc = Ppi\TemplaVoilaPlus\Controller\FrontendController->main
 plugin.tx_templavoilaplus_pi1.disableExplosivePreview = 1
 
-tt_content.templavoilaplus_pi1 = COA
+tt_content.templavoilaplus_pi1 =< lib.contentElement
 tt_content.templavoilaplus_pi1 {
-    ' . $renderFceHeader . '
     20 < plugin.tx_templavoilaplus_pi1
+    templateName = Generic
 }
 
-tt_content.menu.20.3 = USER
-tt_content.menu.20.3.userFunc = Ppi\TemplaVoilaPlus\Controller\SectionIndexController->mainAction
-tt_content.menu.20.3.select.where >
-tt_content.menu.20.3.indexField.data = register:tx_templavoilaplus_pi1.current_field
+# after moving to fsc doesn\'t make sense that way. if you need, migrate this to fsc
+# tt_content.menu.20.3 = USER
+# tt_content.menu.20.3.userFunc = Ppi\TemplaVoilaPlus\Controller\SectionIndexController->mainAction
+# tt_content.menu.20.3.select.where >
+# tt_content.menu.20.3.indexField.data = register:tx_templavoilaplus_pi1.current_field
 
 ', 'defaultContentRendering');
 
@@ -115,6 +106,8 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreview
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreviewContent']['div']      = \Ppi\TemplaVoilaPlus\Controller\Preview\NullController::class;
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreviewContent']['templavoilaplus_pi1'] = \Ppi\TemplaVoilaPlus\Controller\Preview\NullController::class;
 
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['mod1']['renderPreviewContent']['fluidfoundationtheme_twocolumn'] = \Ppi\TemplaVoilaPlus\Controller\Preview\FluidController::class;
+
 // Register slot for translation mirror url
 /** @var \TYPO3\CMS\Extbase\SignalSlot\Dispatcher $signalSlotDispatcher */
 $signalSlotDispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class);
@@ -127,10 +120,33 @@ $signalSlotDispatcher->connect(
 
 // Register install/update processes
 // 8LTS Update
-if (version_compare(TYPO3_version, '8.6.0', '>=')) {
+/*if (version_compare(TYPO3_version, '8.6.0', '>=')) {
     // Add us as first Update process, so we can run before DatabaseRowsUpdateWizard
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'] = array_merge(
         [\Ppi\TemplaVoilaPlus\Updates\Typo3Lts8Update::class => \Ppi\TemplaVoilaPlus\Updates\Typo3Lts8Update::class],
         $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']
     );
+}*/
+
+
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks'][\Ppi\TemplaVoilaPlus\Task\FalMigrateTask::class] = [
+	'extension' => 'templavoilaplus',
+	'title' => 'Migrate tt_contents & datastructures to FAL',
+	'description' => 'Find & process group file fields to FAL + all related files. See Readme first!',
+];
+
+
+
+// restore that missing non-fal tca file/group field / see readme
+if ($GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['templavoilaplus']['compatibility']['restoreTCAGroupFileType'])   {
+
+	$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\FormDataProvider\TcaGroup::class] = [
+		'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\FormDataProvider\TcaGroup::class
+	];
+	$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\Element\GroupElement::class] = [
+		'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\Element\GroupElement::class
+	];
+	$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\Backend\Form\NodeFactory::class] = [
+		'className' => \Ppi\TemplaVoilaPlus\Ext\Backend\Form\NodeFactory::class
+	];
 }

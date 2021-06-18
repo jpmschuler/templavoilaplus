@@ -14,6 +14,8 @@ namespace Ppi\TemplaVoilaPlus\Module\Mod1;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Ppi\TemplaVoilaPlus\Controller\BackendLayoutController;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -36,7 +38,7 @@ class Wizards implements SingletonInterface
     protected $apiObj;
 
     /**
-     * @var \tx_templavoilaplus_module1
+     * @var BackendLayoutController
      */
     public $pObj; // A pointer to the parent object, that is the templavoila page module script. Set by calling the method init() of this class.
 
@@ -46,12 +48,24 @@ class Wizards implements SingletonInterface
      * @var array
      */
     public $TCAdefaultOverride;
+    
+    /**
+     * @var $uriBuilder \TYPO3\CMS\Backend\Routing\UriBuilder 
+     */
+    protected $uriBuilder;
+    
+    /**
+     * ModuleTemplate object
+     *
+     * @var \Ppi\TemplaVoilaPlus\Compat\Template\ModuleTemplate
+     */
+    public $moduleTemplate;
 
     /**
      * Initializes the wizards object. The calling class must make sure that the right locallang files are already loaded.
      * This method is usually called by the templavoila page module.
      *
-     * @param \tx_templavoilaplus_module1 $pObj Reference to the parent object ($this)
+     * @param BackendLayoutController $pObj Reference to the parent object ($this)
      *
      * @return void
      */
@@ -94,7 +108,7 @@ class Wizards implements SingletonInterface
             if ($newID > 0) {
                 $pageColumnsOnly = $this->getPageColumnsOnlyConfig($newID);
 
-                $returnUrl = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                $returnUrl = $this->uriBuilder->buildUriFromRoute(
                     'web_txtemplavoilaplusLayout',
                     [
                         'id' => $newID,
@@ -105,7 +119,7 @@ class Wizards implements SingletonInterface
                 // Create parameters and finally run the classic page module's edit form for the new page:
                 header(
                     'Location: ' . GeneralUtility::locationHeaderUrl(
-                        \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                        $this->uriBuilder->buildUriFromRoute(
                             'record_edit',
                             [
                                 'returnUrl' => $returnUrl,
@@ -156,7 +170,7 @@ class Wizards implements SingletonInterface
                         // PLAIN COPY FROM ABOVE - BEGIN
                         $pageColumnsOnly = $this->getPageColumnsOnlyConfig($newID);
 
-                        $returnUrl = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                        $returnUrl = $this->uriBuilder->buildUriFromRoute(
                             'web_txtemplavoilaplusLayout',
                             [
                                 'id' => $newID,
@@ -167,7 +181,7 @@ class Wizards implements SingletonInterface
                         // Create parameters and finally run the classic page module's edit form for the new page:
                         header(
                             'Location: ' . GeneralUtility::locationHeaderUrl(
-                                \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                                $this->uriBuilder->buildUriFromRoute(
                                     'record_edit',
                                     [
                                         'returnUrl' => $returnUrl,
@@ -193,7 +207,7 @@ class Wizards implements SingletonInterface
 
         $this->moduleTemplate->setForm(
             '<form action="'
-            . \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(
+            . $this->uriBuilder->buildUriFromRoute(
                 'web_txtemplavoilaplusLayout',
                 [
                     'id' => $this->pObj->id,
@@ -248,7 +262,8 @@ class Wizards implements SingletonInterface
     {
         $pageColumnsOnly = 'hidden,title,alias';
         // Get TSconfig for a different selection of fields in the editing form
-        $fieldNamesTs = \TYPO3\CMS\Backend\Utility\BackendUtility::getModTSconfig($newID, 'mod.web_txtemplavoilaplusLayout.createPageWizard.fieldNames');
+	    $pageTsConfig = BackendUtility::getPagesTSconfig($newID);
+        $fieldNamesTs = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.']['createPageWizard.']['fieldNames'];
         if (isset($fieldNamesTs['value'])) {
             $fieldNamesTsValue = trim($fieldNamesTs['value']);
             if ($fieldNamesTsValue && $fieldNamesTsValue !== '*') {
@@ -345,7 +360,7 @@ class Wizards implements SingletonInterface
                         $tmpFilename = $toObj->getIcon();
                         $previewIcon = $defaultIcon;
                         if ($tmpFilename) {
-                            if (@is_file(GeneralUtility::getFileAbsFileName(PATH_site . $tmpFilename))) {
+                            if (@is_file(GeneralUtility::getFileAbsFileName(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/' . $tmpFilename))) {
                                 // Note: we cannot use value of image input element because MSIE replaces this value with mouse coordinates! Thus on click we set value to a hidden field. See http://bugs.typo3.org/view.php?id=3376
                                 $previewIcon = '<img src="/' . $tmpFilename . '">';
                             }
@@ -388,7 +403,7 @@ class Wizards implements SingletonInterface
                                         // Check that the image really is an image and not a malicious PHP script...
                                         if (getimagesize($fileName)) {
                                             // Create icon tag:
-                                            $iconTag = '<img src="' . $GLOBALS['BACK_PATH'] . '../' . substr($fileName, strlen(PATH_site)) . '" ' . $import->dat['header']['thumbnail']['imgInfo'][3] . ' vspace="5" style="border: solid black 1px;" alt="" />';
+                                            $iconTag = '<img src="' . $GLOBALS['BACK_PATH'] . '../' . substr($fileName, strlen(\TYPO3\CMS\Core\Core\Environment::getPublicPath().'/')) . '" ' . $import->dat['header']['thumbnail']['imgInfo'][3] . ' vspace="5" style="border: solid black 1px;" alt="" />';
                                         } else {
                                             GeneralUtility::unlink_tempfile($fileName);
                                         }
