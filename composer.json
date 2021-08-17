@@ -22,6 +22,11 @@
         "typo3/cms-core": "^7.6.0 || ^8.7.0 || ^9.5.0",
         "php": ">=5.5.0 <7.4.99"
     },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "templavoilaplus"
+        }
+    },
     "autoload": {
         "psr-4": {
             "Ppi\\TemplaVoilaPlus\\": "Classes/"
