@@ -3,15 +3,9 @@ defined('TYPO3_MODE') or die();
 
 if (TYPO3_MODE === 'BE') {
 
-    //if (version_compare(TYPO3_version, '8.6.0', '>=')) {
         $GLOBALS['TYPO3_CONF_VARS']['BE']['ContextMenu']['ItemProviders']['templavoilaplus']
             = \Ppi\TemplaVoilaPlus\ContextMenu\ItemProvider::class;
-    /*} else {
-        // Adding click menu item:
-        $GLOBALS['TBE_MODULES_EXT']['xMOD_alt_clickmenu']['extendCMclasses'][] = [
-            'name' => \Ppi\TemplaVoilaPlus\Service\ClickMenu\MainClickMenu::class
-        ];
-    }*/
+
 
     $GLOBALS['TBE_MODULES_EXT']['xMOD_db_new_content_el']['addElClasses'][\Ppi\TemplaVoilaPlus\Hooks\WizardItems::class]
         = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('templavoilaplus') . 'Classes/Hooks/WizardItems.php';
