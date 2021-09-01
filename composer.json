@@ -1,38 +1,49 @@
 {
-    "name": "templavoilaplus/templavoilaplus",
-    "type": "typo3-cms-extension",
-    "description": "Point-and-click, popular and easy template engine for TYPO3. Replacement for old TemplaVoilà!.",
-    "keywords": [
-        "TYPO3",
-        "extension",
-        "template",
-        "engine"
-    ],
-    "homepage": "https://templavoila.plus/",
-    "license": ["GPL-2.0+"],
-    "authors": [
-        {
-            "name": "Alexander Opitz",
-            "email": "opitz@extrameile-gehen.de",
-            "homepage": "http://www.extrameile-gehen.de",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-        "typo3/cms-core": "^9.5 || ^10.4",
-        "php": "^7.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "Ppi\\TemplaVoilaPlus\\": "Classes/"
-        }
-    },
-    "extra": {
-        "typo3/cms": {
-          "extension-key": "templavoilaplus"
-        }
-    },
-    "suggest": {
-        "friendsoftypo3/typo3db-legacy": ">=1.1.1"
+  "name": "templavoilaplus/templavoilaplus",
+  "type": "typo3-cms-extension",
+  "description": "Point-and-click, popular and easy template engine for TYPO3. Replacement for old TemplaVoilà!.",
+  "keywords": [
+    "TYPO3",
+    "extension",
+    "template",
+    "engine"
+  ],
+  "homepage": "https://templavoila.plus/",
+  "license": [
+    "GPL-2.0+"
+  ],
+  "authors": [
+    {
+      "name": "Alexander Opitz",
+      "email": "opitz@extrameile-gehen.de",
+      "homepage": "http://www.extrameile-gehen.de",
+      "role": "Developer"
     }
+  ],
+  "require": {
+    "typo3/cms-core": "^9.5 || ^10.4",
+    "typo3/cms-backend": "*",
+    "php": "^7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Ppi\\TemplaVoilaPlus\\": "Classes/"
+    }
+  },
+  "config": {
+    "vendor-dir": ".Build/vendor",
+    "bin-dir": ".Build/bin",
+    "sort-packages": true
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "templavoilaplus",
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "web-dir": ".Build/public",
+      "app-dir": ".Build"
+    }
+  },
+  "suggest": {
+    "friendsoftypo3/typo3db-legacy": ">=1.1.1"
+  }
 }

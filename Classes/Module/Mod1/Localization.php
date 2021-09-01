@@ -36,6 +36,8 @@ class Localization implements SingletonInterface
      */
     public $pObj; //
 
+    public $uriBuilder;
+
     /**
      * Initializes the sub module object. The calling class must make sure that the right locallang files are already loaded.
      * This method is usually called by the templavoila page module.
@@ -59,6 +61,7 @@ class Localization implements SingletonInterface
             60,
             false
         );
+        $this->uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
     }
 
     /**
@@ -213,10 +216,6 @@ class Localization implements SingletonInterface
      */
     public function sidebar_renderItem_renderNewTranslationSelectorbox()
     {
-        if (!TemplaVoilaUtility::getBackendUser()->isPSet($this->pObj->calcPerms, 'pages', 'edit')) {
-            return false;
-        }
-
         $newLanguagesArr = TemplaVoilaUtility::getAvailableLanguages(0, false, false, $this->pObj->modSharedTSconfig);
         if (count($newLanguagesArr) < 1) {
             return false;
@@ -224,7 +223,6 @@ class Localization implements SingletonInterface
 
         $translatedLanguagesArr = TemplaVoilaUtility::getAvailableLanguages($this->pObj->id, false, false, $this->pObj->modSharedTSconfig);
         $optionsArr = array('<option value=""></option>');
-        $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
 
         foreach ($newLanguagesArr as $language) {
             if (TemplaVoilaUtility::getBackendUser()->checkLanguageAccess($language['uid']) && !isset($translatedLanguagesArr[$language['uid']])) {
@@ -235,29 +233,16 @@ class Localization implements SingletonInterface
                 // which redirects to FormEngine (record_edit)
                 // which, when finished editing should return back to the current page (returnUrl)
 
-                if (version_compare(TYPO3_version, '9.3.0', '>=')) {
                     $parameters = [
                         'justLocalized' => 'pages:' . $this->pObj->id . ':' . (int)$language['uid'],
-                        'returnUrl' => (string)$uriBuilder->buildUriFromRoute(
+                        'returnUrl' => $this->uriBuilder->buildUriFromRoute(
                             $this->pObj->getModuleName(),
                             $this->pObj->getLinkParameters(['SET' => ['language' => $language['uid']]])
                         ),
                     ];
-                } else {
-                    $table = 'pages_language_overlay';
-                    if (version_compare(TYPO3_version, '8.5.0', '>=')) {
-                        $table = 'pages';
-                    }
-                    $parameters = [
-                        'justLocalized' => $table . ':' . $this->pObj->id . ':' . (int)$language['uid'],
-                        'returnUrl' => (string)$uriBuilder->buildUriFromModule(
-                            $this->pObj->getModuleName(),
-                            $this->pObj->getLinkParameters(['SET' => ['language' => $language['uid']]])
-                        ),
-                    ];
-                }
+              
 
-                $redirectUrl = (string)$uriBuilder->buildUriFromRoute('record_edit', $parameters);
+                $redirectUrl = $this->uriBuilder->buildUriFromRoute('record_edit', $parameters);
 
                 $language['link'] = BackendUtility::getLinkToDataHandlerAction(
                     '&cmd[pages][' . $this->pObj->id . '][localize]=' . (int)$language['uid'],
