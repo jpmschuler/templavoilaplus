@@ -19,21 +19,18 @@
         }
     ],
     "require": {
-        "typo3/cms-core": "^7.6.0 || ^8.7.0 || ^9.5.0",
-        "php": ">=5.5.0 <7.3.99"
+        "typo3/cms-core": "^9.5 || ^10.4",
+        "php": "^7.2"
     },
     "autoload": {
         "psr-4": {
             "Ppi\\TemplaVoilaPlus\\": "Classes/"
         }
     },
-    "conflict": {
-        "typo3-ter/templavoila": "*",
-        "templavoila/templavoila": "*"
-    },
-    "replace": {
-        "templavoilaplus/templavoilaplus": "self.version",
-        "typo3-ter/templavoilaplus": "self.version"
+    "extra": {
+        "typo3/cms": {
+          "extension-key": "templavoilaplus",
+        }
     },
     "suggest": {
         "friendsoftypo3/typo3db-legacy": ">=1.1.1"
