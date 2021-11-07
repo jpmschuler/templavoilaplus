@@ -435,21 +435,21 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
         }
 
         // Initialize side bar and wizards:
-        $this->sideBarObj = GeneralUtility::getUserObj('Ppi\\TemplaVoilaPlus\Module\\Mod1\\Sidebar', '');
+        $this->sideBarObj = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Mod1\Sidebar::class);
         $this->sideBarObj->init($this);
 
-        $this->wizardsObj = GeneralUtility::getUserObj('Ppi\\TemplaVoilaPlus\Module\\Mod1\\Wizards', '');
+        $this->wizardsObj = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Mod1\Wizards::class);
         $this->wizardsObj->init($this);
         // Initialize the clipboard
-        $this->clipboardObj = GeneralUtility::getUserObj('Ppi\\TemplaVoilaPlus\Module\\Mod1\\Clipboard', '');
+        $this->clipboardObj = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Mod1\Clipboard::class);
         $this->clipboardObj->init($this);
 
         // Initialize the record module
-        $this->recordsObj = GeneralUtility::getUserObj('Ppi\\TemplaVoilaPlus\Module\\Mod1\\Records', '');
+        $this->recordsObj = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Mod1\Records::class);
         $this->recordsObj->init($this);
         // Add the localization module if localization is enabled:
         if ($this->alternativeLanguagesDefined()) {
-            $this->localizationObj = GeneralUtility::getUserObj('Ppi\\TemplaVoilaPlus\Module\\Mod1\\Localization', '');
+            $this->localizationObj = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Mod1\Localization::class);
             $this->localizationObj->init($this);
         }
     }
@@ -733,7 +733,7 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
             // Show message if the page is of a special doktype:
             if ($this->rootElementTable == 'pages') {
                 // Initialize the special doktype class:
-                $specialDoktypesObj =& GeneralUtility::getUserObj('Ppi\\TemplaVoilaPlus\Module\\Mod1\\Specialdoktypes', '');
+                $specialDoktypesObj = GeneralUtility::getUserObj(\Ppi\TemplaVoilaPlus\Module\Mod1\Specialdoktypes::class);
                 $specialDoktypesObj->init($this);
                 $doktype = $this->rootElementRecord['doktype'];
 
@@ -1162,7 +1162,7 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
         $this->global_tt_content_elementRegister = $contentTreeData['contentElementUsage'];
 
         // Setting localization mode for root element:
-        $this->rootElementLangMode = $contentTreeData['tree']['ds_meta']['langDisable'] ? 'disable' : ($contentTreeData['tree']['ds_meta']['langChildren'] ? 'inheritance' : 'separate');
+        $this->rootElementLangMode = !empty($contentTreeData['tree']['ds_meta']['langDisable']) ? 'disable' : (!empty($contentTreeData['tree']['ds_meta']['langChildren']) ? 'inheritance' : 'separate');
         $this->rootElementLangParadigm = ($this->modTSconfig['properties']['translationParadigm'] == 'free') ? 'free' : 'bound';
 
         // Create a back button if neccessary:
@@ -1464,7 +1464,7 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
         }
 
         // Preview made:
-        $previewContent = $contentTreeArr['ds_meta']['disableDataPreview'] ? '&nbsp;' : $this->render_previewData($contentTreeArr['previewData'], $contentTreeArr['el'], $contentTreeArr['ds_meta'], $languageKey, $sheet);
+        $previewContent = !empty($contentTreeArr['ds_meta']['disableDataPreview']) ? '&nbsp;' : $this->render_previewData($contentTreeArr['previewData'], $contentTreeArr['el'], $contentTreeArr['ds_meta'], $languageKey, $sheet);
 
         // Wrap workspace notification colors:
         if ($contentTreeArr['el']['_ORIG_uid']) {
@@ -1525,8 +1525,8 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
         $canEditContent = TemplaVoilaUtility::getBackendUser()->isPSet($calcPerms, 'pages', 'editcontent');
 
         // Define l/v keys for current language:
-        $langChildren = (int)$elementContentTreeArr['ds_meta']['langChildren'];
-        $langDisable = (int)$elementContentTreeArr['ds_meta']['langDisable'];
+        $langChildren = (isset($elementContentTreeArr['ds_meta']['langChildren']) ? (int)$elementContentTreeArr['ds_meta']['langChildren'] : 0);
+        $langDisable = (isset($elementContentTreeArr['ds_meta']['langDisable']) ? (int)$elementContentTreeArr['ds_meta']['langDisable'] : 0);
 
         $lKey = $this->determineFlexLanguageKey($langDisable, $langChildren, $languageKey);
         $vKey = $this->determineFlexValueKey($langDisable, $langChildren, $languageKey);
@@ -1852,8 +1852,8 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
         // Preview of FlexForm content if any:
         if (is_array($previewData['sheets'][$sheet])) {
             // Define l/v keys for current language:
-            $langChildren = (int)$ds_meta['langChildren'];
-            $langDisable = (int)$ds_meta['langDisable'];
+            $langChildren = (isset($ds_meta['langChildren']) ? (int) $ds_meta['langChildren'] : 0);
+            $langDisable = (isset($ds_meta['langDisable']) ? (int)$ds_meta['langDisable'] : 0);
             $lKey = $langDisable ? 'lDEF' : ($langChildren ? 'lDEF' : 'l' . $languageKey);
             $vKey = $langDisable ? 'vDEF' : ($langChildren ? 'v' . $languageKey : 'vDEF');
 
@@ -3057,7 +3057,11 @@ class BackendLayoutController extends \TYPO3\CMS\Backend\Module\BaseScriptClass
         $hookObjectsArr = array();
         if (@is_array($TYPO3_CONF_VARS['EXTCONF']['templavoilaplus']['mod1'][$hookName])) {
             foreach ($TYPO3_CONF_VARS['EXTCONF']['templavoilaplus']['mod1'][$hookName] as $key => $classRef) {
-                $hookObjectsArr[$key] = & GeneralUtility::getUserObj($classRef);
+                if (version_compare(TYPO3_version, '9.0.0', '>=')) {
+                    $hookObjectsArr[$key] = GeneralUtility::makeInstance($classRef);
+                } else {
+                    $hookObjectsArr[$key] = & GeneralUtility::getUserObj($classRef);
+                }
             }
         }
 

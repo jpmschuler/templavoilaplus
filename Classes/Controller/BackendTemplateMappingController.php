@@ -370,11 +370,11 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
     public function main()
     {
         // Initialize ds_edit
-        $this->dsEdit = GeneralUtility::getUserObj(\Ppi\TemplaVoilaPlus\Module\Cm1\DsEdit::class, '');
+        $this->dsEdit = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Cm1\DsEdit::class);
         $this->dsEdit->init($this);
 
         // Initialize eTypes
-        $this->eTypes = GeneralUtility::getUserObj(\Ppi\TemplaVoilaPlus\Module\Cm1\ETypes::class, '');
+        $this->eTypes = GeneralUtility::makeInstance(\Ppi\TemplaVoilaPlus\Module\Cm1\ETypes::class);
         $this->eTypes->init($this);
 
         $this->extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['templavoilaplus']);
@@ -879,7 +879,10 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
                 // Get <head>...</head> from template:
                 $splitByHeader = $this->markupObj->htmlParse->splitIntoBlock('head', $fileContent);
                 // There should be only one head tag
-                $html_header = $this->markupObj->htmlParse->removeFirstAndLastTag($splitByHeader[1]);
+                $html_header = '';
+                if (is_string($splitByHeader)) {
+                    $html_header = $this->markupObj->htmlParse->removeFirstAndLastTag($splitByHeader[1]);
+                }
 
                 $this->markupObj->tags = $this->head_markUpTags; // Set up the markupObject to process only header-section tags:
 
@@ -903,7 +906,10 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
 
                 if ($cmd != 'showXMLDS') {
                     // Set default flags to <meta> tag
-                    if (!isset($dataStruct['meta'])) {
+                    if (!isset($dataStruct['meta']) || !is_array($dataStruct['meta'])) {
+                        if (isset($dataStruct['meta'])) {
+                            unset($dataStruct['meta']);
+                        }
                         // Make sure <meta> goes at the beginning of data structure.
                         // This is not critical for typo3 but simply convinient to
                         // people who used to see it at the beginning.
@@ -1788,7 +1794,10 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
             // Get <head>...</head> from template:
             $splitByHeader = $this->markupObj->htmlParse->splitIntoBlock('head', $fileContent);
             // There should be only one head tag
-            $html_header = $this->markupObj->htmlParse->removeFirstAndLastTag($splitByHeader[1]);
+            $html_header = '';
+            if (is_string($splitByHeader)) {
+                $html_header = $this->markupObj->htmlParse->removeFirstAndLastTag($splitByHeader[1]);
+            }
 
             $this->markupObj->tags = $this->head_markUpTags; // Set up the markupObject to process only header-section tags:
 
@@ -1912,7 +1921,11 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
         // Get <head>...</head> from template:
         $splitByHeader = $this->markupObj->htmlParse->splitIntoBlock('head', $fileContent);
         // There should be only one head tag
-        $html_header = $this->markupObj->htmlParse->removeFirstAndLastTag($splitByHeader[1]);
+
+        $html_header = '';
+        if (is_string($splitByHeader)) {
+            $html_header = $this->markupObj->htmlParse->removeFirstAndLastTag($splitByHeader[1]);
+        }
 
         // Set up the markupObject to process only header-section tags:
         $this->markupObj->tags = $this->head_markUpTags;
@@ -2229,9 +2242,9 @@ class BackendTemplateMappingController extends \TYPO3\CMS\Backend\Module\BaseScr
                     $icon = '<span class="dsType_Icon dsType_' . $info['id'] . '" title="' . $info['title'] . '">' . strtoupper($info['id']) . '</span>';
 
                     if ($key === 'ROOT') {
-                        $fieldTitle = $dataStruct['meta']['title'];
+                        $fieldTitle = (isset($dataStruct['meta']['title']) ? $dataStruct['meta']['title'] : $value['title']);
                     } else {
-                        $fieldTitle = ($value['TCEforms']['label'] ? $value['TCEforms']['label'] : $value['title']);
+                        $fieldTitle = (!empty($value['TCEforms']['label']) ? $value['TCEforms']['label'] : $value['title']);
                     }
 
                     // Composing title-cell:
