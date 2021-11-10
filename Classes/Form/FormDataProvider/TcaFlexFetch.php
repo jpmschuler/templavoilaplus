@@ -37,7 +37,9 @@ class TcaFlexFetch implements FormDataProviderInterface
             if (empty($fieldConfig['config']['type']) || $fieldConfig['config']['type'] !== 'flex') {
                 continue;
             }
-            $result = $this->initializeDataStructure($result, $fieldName);
+            if (strpos($result['databaseRow']['uid'], 'NEW') === false) {
+                $result = $this->initializeDataStructure($result, $fieldName);
+            }
             $result = $this->initializeDataValues($result, $fieldName);
             $result = $this->resolvePossibleExternalFileInDataStructure($result, $fieldName);
         }
