@@ -766,7 +766,8 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         $this->view->assignMultiple([
             'errors' => $errors,
             'hasError' => false,
-            'selection' => $selection
+            'selection' => $selection,
+            'overwrite' => true
         ]);
     }
 
@@ -1644,9 +1645,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         $destination = $publicExtensionDirectory . $subPath . '/';
 
         if (file_exists($destination . $filename)) {
-            /** @TODO Implement me */
-//             $destination = $this->getUniqueFilename($destination, $filename);
-            throw new \Exception('Doubled file names arent implemented yet: "' . $destination . $filename . '"');
+            return $this->copyFile($readPathAndFilename,$copiedTemplateFiles,$publicExtensionDirectory,$subPath,$extraPart.time());
         }
 
         $result = @copy($source, $destination . $filename);
