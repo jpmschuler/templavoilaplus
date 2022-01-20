@@ -17,12 +17,12 @@ namespace Tvp\TemplaVoilaPlus\Controller\Backend\ControlCenter;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Tvp\TemplaVoilaPlus\Utility\DataStructureUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Tvp\TemplaVoilaPlus\Utility\DataStructureUtility;
 
 /**
  * Controller to migrate/update from TV+ 7 to TV+ 8
@@ -92,14 +92,14 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         }
 
         $allDsToValid = false;
-        list($validationDsToErrors, $validatedDs, $validatedToWithDs) = $this->checkAllDsToValid($allDs, $allTo);
+        [$validationDsToErrors, $validatedDs, $validatedToWithDs] = $this->checkAllDsToValid($allDs, $allTo);
         if (count($validationDsToErrors) === 0) {
             $allDsToValid = true;
         }
 
         // Check database if the found ds/to are in usage, give the possibility to delete them?
         $allPagesContentValid = false;
-        list($validationPagesContentErrors, $validatedToWithDs) = $this->checkAllPageContentForTo($validatedToWithDs);
+        [$validationPagesContentErrors, $validatedToWithDs] = $this->checkAllPageContentForTo($validatedToWithDs);
         if (count($validationPagesContentErrors) === 0) {
             $allPagesContentValid = true;
         }
@@ -117,7 +117,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             'allNewDatabaseElementsFound' => $allNewDatabaseElementsFound,
             'storagePidsAreFine' => $storagePidsAreFine,
             'useStaticDS' => $useStaticDS,
-            'staticDsInExtension' => (bool) (isset($GLOBALS['TBE_MODULES_EXT']['xMOD_tx_templavoilaplus_cm1']['staticDataStructures']) || isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures'])),
+            'staticDsInExtension' => (bool)(isset($GLOBALS['TBE_MODULES_EXT']['xMOD_tx_templavoilaplus_cm1']['staticDataStructures']) || isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures'])),
             'staticDsPaths' => implode(', ', $this->getStaticDsPaths()),
             'allDsToValid' => $allDsToValid,
             'validationDsToErrors' => $validationDsToErrors,
@@ -210,7 +210,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures'])
         ) {
-            $allDs = array_merge($allDs, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures']);
+            $allDs = array_merge(
+                $allDs, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['templavoilaplus']['staticDataStructures']
+            );
         }
 
         // Read XML data from "Template Extensions" config
@@ -241,7 +243,11 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                     'icon' => '',
                 ];
 
-                if (is_file($systemPath . $dataStructure['path']) && is_readable($systemPath . $dataStructure['path'])) {
+                if (
+                    is_file($systemPath . $dataStructure['path']) && is_readable(
+                        $systemPath . $dataStructure['path']
+                    )
+                ) {
                     $dataStructure['xml'] = file_get_contents($systemPath . $dataStructure['path']);
                 }
 
@@ -260,7 +266,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             }
         }
 
-         return $allDs;
+        return $allDs;
     }
 
     protected function getAllDsFromDatabase(): array
@@ -285,7 +291,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             $dataStructure = [
                 'staticDS' => false,
                 'title' => $row['title'],
-                'path' => (string) $row['uid'],
+                'path' => (string)$row['uid'],
                 'xml' => $row['dataprot'],
                 'scope' => $row['scope'],
                 'icon' => $row['previewicon'],
@@ -335,7 +341,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 $result = simplexml_load_string($ds['xml']);
                 if ($result === false) {
                     $errors = libxml_get_errors();
-                    $validationErrors[] = 'Cannot verify XML of DS with title "' . $ds['title'] . '" Error is: ' . reset($errors)->message;
+                    $validationErrors[] = 'Cannot verify XML of DS with title "' . $ds['title'] . '" Error is: ' . reset(
+                            $errors
+                        )->message;
                 } else {
                     $ds['valid'] = true;
                 }
@@ -365,7 +373,8 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                         $mappingInformation = unserialize($to['templatemapping']);
                         if (isset($mappingInformation['MappingInfo']['ROOT'])) {
                             $to['valid'] = true;
-                            $to['DS'] = $validatedDs[$to['datastructure']]; /** @TODO If parent then from parent! Check if parent exists */
+                            $to['DS'] = $validatedDs[$to['datastructure']];
+                            /** @TODO If parent then from parent! Check if parent exists */
                         } else {
                             $validationErrors[] = 'Cannot verify TO with title "' . $to['title'] . '" and uid "' . $to['uid'] . '", as mapping seams not existing.';
                         }
@@ -401,6 +410,50 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         return [$validationErrors, $validatedDs, $validatedToWithDs];
     }
 
+    protected static function countValidatedTo($to): int
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('pages');
+        $queryBuilder
+            ->getRestrictions()
+            ->removeAll()
+            ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+
+        $result = $queryBuilder
+            ->count('uid')
+            ->from('pages')
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'tx_templavoilaplus_to', $queryBuilder->createNamedParameter($to, \PDO::PARAM_STR)
+                )
+            )
+            ->execute()
+            ->fetchColumn(0);
+        return $result;
+    }
+
+    protected static function countValidatedNextTo($next_to): int
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('pages');
+        $queryBuilder
+            ->getRestrictions()
+            ->removeAll()
+            ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+        $result = $queryBuilder
+            ->count('uid')
+            ->from('pages')
+            ->where(
+                $queryBuilder->expr()->eq(
+        'tx_templavoilaplus_next_to', $queryBuilder->createNamedParameter($next_to, \PDO::PARAM_STR)
+    )
+            )
+            ->execute()
+        ->fetchColumn(0);
+
+        return $result;
+    }
+
     protected function checkAllPageContentForTo(array $validatedToWithDs): array
     {
         $validationErrors = [];
@@ -411,21 +464,24 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 
         // PAGES
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-                ->getQueryBuilderForTable('pages');
+            ->getQueryBuilderForTable('pages');
         $queryBuilder
             ->getRestrictions()
             ->removeAll()
             ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
 
         $result = $queryBuilder
-            ->count('uid')
-            ->addSelect('min(uid) as uid', 'tx_templavoilaplus_to', 'tx_templavoilaplus_next_to')
+            ->select('uid', 'tx_templavoilaplus_to', 'tx_templavoilaplus_next_to')
             ->from('pages')
             ->where(
-                $queryBuilder->expr()->neq('tx_templavoilaplus_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR))
+                $queryBuilder->expr()->neq(
+                    'tx_templavoilaplus_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR)
+                )
             )
             ->orWhere(
-                $queryBuilder->expr()->neq('tx_templavoilaplus_next_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR))
+                $queryBuilder->expr()->neq(
+                    'tx_templavoilaplus_next_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR)
+                )
             )
             ->groupBy('tx_templavoilaplus_to', 'tx_templavoilaplus_next_to')
             ->execute()
@@ -434,14 +490,18 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         foreach ($result as $row) {
             if ($row['tx_templavoilaplus_to'] != 0) {
                 if (isset($validatedToWithDs[$row['tx_templavoilaplus_to']])) {
-                    $validatedToWithDs[$row['tx_templavoilaplus_to']]['countUsage'] += $row['COUNT(`uid`)'];
+                    $validatedToWithDs[$row['tx_templavoilaplus_to']]['countUsage'] = static::countValidatedTo(
+                        $row['tx_templavoilaplus_to']
+                    );
                 } else {
                     $validationErrors[] = 'There are pages which use an non existent Template Object with uid "' . $row['tx_templavoilaplus_to'] . '" like page with page uid: "' . $row['uid'] . '"';
                 }
             }
             if ($row['tx_templavoilaplus_next_to'] != 0) {
                 if (isset($validatedToWithDs[$row['tx_templavoilaplus_next_to']])) {
-                    $validatedToWithDs[$row['tx_templavoilaplus_next_to']]['countUsage'] += $row['COUNT(`uid`)'];
+                    $validatedToWithDs[$row['tx_templavoilaplus_next_to']]['countUsage'] = static::countValidatedNextTo(
+                        $row['tx_templavoilaplus_next_to']
+                    );
                 } else {
                     $validationErrors[] = 'There are pages which use an non existent Template Object with uid "' . $row['tx_templavoilaplus_next_to'] . '" for subpages like page with page uid: "' . $row['uid'] . '"';
                 }
@@ -450,7 +510,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 
         // TT_CONTENT
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-                ->getQueryBuilderForTable('tt_content');
+            ->getQueryBuilderForTable('tt_content');
         $queryBuilder
             ->getRestrictions()
             ->removeAll()
@@ -461,7 +521,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             ->addSelect('uid', 'tx_templavoilaplus_to')
             ->from('tt_content')
             ->where(
-                $queryBuilder->expr()->neq('tx_templavoilaplus_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR))
+                $queryBuilder->expr()->neq(
+                    'tx_templavoilaplus_to', $queryBuilder->createNamedParameter('', \PDO::PARAM_STR)
+                )
             )
             ->groupBy('tx_templavoilaplus_to')
             ->execute()
@@ -498,7 +560,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
     protected function step2Action()
     {
         $packagesQualified = [];
-        $showAll = (bool) $_POST['showAll'];
+        $showAll = (bool)$_POST['showAll'];
 
         /** @var PackageManager */
         $packageManager = GeneralUtility::makeInstance(PackageManager::class);
@@ -532,10 +594,18 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 // Already includes TVP configuration so maybe possible theme/config extension
                 $qualify += 10;
             }
-            if (stripos($package->getPackageKey(), 'config') || stripos($package->getPackageMetaData()->getDescription(), 'config')) {
+            if (
+                stripos($package->getPackageKey(), 'config') || stripos(
+                    $package->getPackageMetaData()->getDescription(), 'config'
+                )
+            ) {
                 $qualify += 10;
             }
-            if (stripos($package->getPackageKey(), 'theme') || stripos($package->getPackageMetaData()->getDescription(), 'theme')) {
+            if (
+                stripos($package->getPackageKey(), 'theme') || stripos(
+                    $package->getPackageMetaData()->getDescription(), 'theme'
+                )
+            ) {
                 $qualify += 10;
             }
 
@@ -563,10 +633,12 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         $allTerExtensions = $queryBuilder
             ->select('extension_key')
             ->from('tx_extensionmanager_domain_model_extension')
-            ->where($queryBuilder->expr()->eq(
-                'current_version',
-                $queryBuilder->createNamedParameter(1, \PDO::PARAM_INT)
-            ))
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'current_version',
+                    $queryBuilder->createNamedParameter(1, \PDO::PARAM_INT)
+                )
+            )
             ->execute()
             ->fetchAll();
 
@@ -689,12 +761,12 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 
         $selection = $_POST['selection'];
 
-        $errors[] = 'Using an existing extension isn\'t supported yet.';
+        $errors[] = 'WARNING! This can overwrite your extension files permanently.';
 
         $this->view->assignMultiple([
             'errors' => $errors,
-            'hasError' => (count($errors) ? true : false),
-            'selection' => $selection,
+            'hasError' => false,
+            'selection' => $selection
         ]);
     }
 
@@ -729,10 +801,14 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                     if ($overwrite) {
                         // Cleanup from preview run?
                         if (!GeneralUtility::rmdir($publicExtensionDirectory, true)) {
-                            throw new \Exception('Could not clean up extension path "' . $publicExtensionDirectory . '"');
+                            throw new \Exception(
+                                'Could not clean up extension path "' . $publicExtensionDirectory . '"'
+                            );
                         }
                     } else {
-                        throw new \Exception('Directory already exists with extension path "' . $publicExtensionDirectory . '"');
+                        throw new \Exception(
+                            'Directory already exists with extension path "' . $publicExtensionDirectory . '"'
+                        );
                     }
                 }
 
@@ -763,7 +839,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                         ],
                     ],
                 ];
-                $emConfContent = "<?php\n$fileDescription\n\$EM_CONF['$newExtensionKey'] = " . ArrayUtility::arrayExport($emConfConfig) . ";\n";
+                $emConfContent = "<?php\n$fileDescription\n\$EM_CONF['$newExtensionKey'] = " . ArrayUtility::arrayExport(
+                        $emConfConfig
+                    ) . ";\n";
                 GeneralUtility::writeFile($publicExtensionDirectory . '/ext_emconf.php', $emConfContent, true);
 
                 $composerInfo = [
@@ -788,7 +866,10 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 }
 
                 // Create composer.json
-                GeneralUtility::writeFile($publicExtensionDirectory . '/composer.json', json_encode($composerInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+                GeneralUtility::writeFile(
+                    $publicExtensionDirectory . '/composer.json',
+                    json_encode($composerInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n"
+                );
 
                 // Create extension registration in ext_localconf.php
                 /** @TODO Remove later */
@@ -842,13 +923,17 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                     'name' => $packageTitle . ' Pages',
                     'path' => 'EXT:' . $selection . $innerPathes['ds']['page'],
                     'scope' => new UnquotedString(\Tvp\TemplaVoilaPlus\Domain\Model\Scope::class . '::SCOPE_PAGE'),
-                    'loadSaveHandler' => new UnquotedString(\Tvp\TemplaVoilaPlus\Handler\LoadSave\XmlLoadSaveHandler::class . '::$identifier'),
+                    'loadSaveHandler' => new UnquotedString(
+                        \Tvp\TemplaVoilaPlus\Handler\LoadSave\XmlLoadSaveHandler::class . '::$identifier'
+                    ),
                 ],
                 $packageName . '/FCE/DataStructure' => [
                     'name' => $packageTitle . ' FCEs',
                     'path' => 'EXT:' . $selection . $innerPathes['ds']['fce'],
                     'scope' => new UnquotedString(\Tvp\TemplaVoilaPlus\Domain\Model\Scope::class . '::SCOPE_FCE'),
-                    'loadSaveHandler' => new UnquotedString(\Tvp\TemplaVoilaPlus\Handler\LoadSave\XmlLoadSaveHandler::class . '::$identifier'),
+                    'loadSaveHandler' => new UnquotedString(
+                        \Tvp\TemplaVoilaPlus\Handler\LoadSave\XmlLoadSaveHandler::class . '::$identifier'
+                    ),
                 ],
             ];
 
@@ -858,13 +943,17 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                     'name' => $packageTitle . ' Pages',
                     'path' => 'EXT:' . $selection . $innerPathes['mappingConfiguration']['page'],
                     'scope' => new UnquotedString(\Tvp\TemplaVoilaPlus\Domain\Model\Scope::class . '::SCOPE_PAGE'),
-                    'loadSaveHandler' => new UnquotedString(\Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'),
+                    'loadSaveHandler' => new UnquotedString(
+                        \Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'
+                    ),
                 ],
                 $packageName . '/FCE/MappingConfiguration' => [
                     'name' => $packageTitle . ' FCEs',
                     'path' => 'EXT:' . $selection . $innerPathes['mappingConfiguration']['fce'],
                     'scope' => new UnquotedString(\Tvp\TemplaVoilaPlus\Domain\Model\Scope::class . '::SCOPE_FCE'),
-                    'loadSaveHandler' => new UnquotedString(\Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'),
+                    'loadSaveHandler' => new UnquotedString(
+                        \Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'
+                    ),
                 ],
             ];
 
@@ -874,13 +963,17 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                     'name' => $packageTitle . ' Pages',
                     'path' => 'EXT:' . $selection . $innerPathes['templateConfiguration']['page'],
                     'scope' => new UnquotedString(\Tvp\TemplaVoilaPlus\Domain\Model\Scope::class . '::SCOPE_PAGE'),
-                    'loadSaveHandler' => new UnquotedString(\Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'),
+                    'loadSaveHandler' => new UnquotedString(
+                        \Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'
+                    ),
                 ],
                 $packageName . '/FCE/TemplateConfiguration' => [
                     'name' => $packageTitle . ' FCEs',
                     'path' => 'EXT:' . $selection . $innerPathes['templateConfiguration']['fce'],
                     'scope' => new UnquotedString(\Tvp\TemplaVoilaPlus\Domain\Model\Scope::class . '::SCOPE_FCE'),
-                    'loadSaveHandler' => new UnquotedString(\Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'),
+                    'loadSaveHandler' => new UnquotedString(
+                        \Tvp\TemplaVoilaPlus\Handler\LoadSave\YamlLoadSaveHandler::class . '::$identifier'
+                    ),
                 ],
             ];
 
@@ -889,29 +982,53 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 $packageName . '/BackendLayoutConfiguration' => [
                     'name' => $packageTitle . ' BackendLayouts',
                     'path' => 'EXT:' . $selection . $innerPathes['backendLayout'],
-                    'loadSaveHandler' => new UnquotedString(\Tvp\TemplaVoilaPlus\Handler\LoadSave\MarkerBasedFileLoadSaveHandler::class . '::$identifier'),
+                    'loadSaveHandler' => new UnquotedString(
+                        \Tvp\TemplaVoilaPlus\Handler\LoadSave\MarkerBasedFileLoadSaveHandler::class . '::$identifier'
+                    ),
                 ],
             ];
 
             // Create/Update Places configuration files
-            $dataStructurePlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport($dataStructurePlacesConfig) . ";\n";
-            GeneralUtility::writeFile($publicExtensionDirectory . $innerPathes['configuration'] . '/DataStructurePlaces.php', $dataStructurePlaces, true);
+            $dataStructurePlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport(
+                    $dataStructurePlacesConfig
+                ) . ";\n";
+            GeneralUtility::writeFile(
+                $publicExtensionDirectory . $innerPathes['configuration'] . '/DataStructurePlaces.php',
+                $dataStructurePlaces, true
+            );
 
-            $mappingConfigurationPlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport($mappingConfigurationPlacesConfig) . ";\n";
-            GeneralUtility::writeFile($publicExtensionDirectory . $innerPathes['configuration'] . '/MappingPlaces.php', $mappingConfigurationPlaces, true);
+            $mappingConfigurationPlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport(
+                    $mappingConfigurationPlacesConfig
+                ) . ";\n";
+            GeneralUtility::writeFile(
+                $publicExtensionDirectory . $innerPathes['configuration'] . '/MappingPlaces.php',
+                $mappingConfigurationPlaces, true
+            );
 
-            $templateConfigurationPlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport($templateConfigurationPlacesConfig) . ";\n";
-            GeneralUtility::writeFile($publicExtensionDirectory . $innerPathes['configuration'] . '/TemplatePlaces.php', $templateConfigurationPlaces, true);
+            $templateConfigurationPlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport(
+                    $templateConfigurationPlacesConfig
+                ) . ";\n";
+            GeneralUtility::writeFile(
+                $publicExtensionDirectory . $innerPathes['configuration'] . '/TemplatePlaces.php',
+                $templateConfigurationPlaces, true
+            );
 
-            $beLayoutConfigurationPlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport($beLayoutConfigurationPlacesConfig) . ";\n";
-            GeneralUtility::writeFile($publicExtensionDirectory . $innerPathes['configuration'] . '/BackendLayoutPlaces.php', $beLayoutConfigurationPlaces, true);
+            $beLayoutConfigurationPlaces = "<?php\ndeclare(strict_types=1);\n\nreturn " . $this->arrayExport(
+                    $beLayoutConfigurationPlacesConfig
+                ) . ";\n";
+            GeneralUtility::writeFile(
+                $publicExtensionDirectory . $innerPathes['configuration'] . '/BackendLayoutPlaces.php',
+                $beLayoutConfigurationPlaces, true
+            );
 
             $ds = $this->getAllDs();
             /** @TODO Support for multiple storage_pids */
             $to = $this->getAllToFromDB();
 
             // Read old data, convert and write to new places
-            $covertingInstructions = $this->convertAllDsTo($ds, $to, $packageName, $publicExtensionDirectory, $innerPathes);
+            $covertingInstructions = $this->convertAllDsTo(
+                $ds, $to, $packageName, $publicExtensionDirectory, $innerPathes
+            );
         } catch (\Exception $e) {
             $errors[] = $e->getMessage();
         }
@@ -929,8 +1046,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         ]);
     }
 
-    protected function convertAllDsTo(array $allDs, array $allTos, string $packageName, string $publicExtensionDirectory, array $innerPathes): array
-    {
+    protected function convertAllDsTo(
+        array $allDs, array $allTos, string $packageName, string $publicExtensionDirectory, array $innerPathes
+    ): array {
         $systemPath = $this->getSystemPath();
         $covertingInstructions = [];
         $copiedTemplateFiles = [];
@@ -959,28 +1077,40 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         // Change the logic the other way arround, we need to itterate over the TOs
         // and then convert the dependend DS files as we need their data for the mappings
         foreach ($allTos as $to) {
-            $resultingFileName = $this->copyFile($to['fileref'], $copiedTemplateFiles, $publicExtensionDirectory, $innerPathes['templates']);
+            $resultingFileName = $this->copyFile(
+                $to['fileref'], $copiedTemplateFiles, $publicExtensionDirectory, $innerPathes['templates']
+            );
 
             $yamlFileName = pathinfo($resultingFileName, PATHINFO_FILENAME) . '.tvp.yaml';
 
             // Prevent double usage of configuration files but name them like the templates
             if ($filenameUsed[$yamlFileName]) {
                 $filenameUsed[$yamlFileName]++;
-                $yamlFileName = pathinfo($resultingFileName, PATHINFO_FILENAME) . $filenameUsed[$yamlFileName] . '.tvp.yaml';
+                $yamlFileName = pathinfo(
+                        $resultingFileName, PATHINFO_FILENAME
+                    ) . $filenameUsed[$yamlFileName] . '.tvp.yaml';
             } else {
                 $filenameUsed[$yamlFileName] = 1;
             }
 
-            list($mappingConfiguration, $scopeName, $scopePath) = $this->convertDsToForOneTo($allDs, $to, $copiedBackendLayoutFiles, $convertedDS, $packageName, $publicExtensionDirectory, $innerPathes, $resultingFileName, $yamlFileName);
+            [$mappingConfiguration, $scopeName, $scopePath] = $this->convertDsToForOneTo(
+                $allDs, $to, $copiedBackendLayoutFiles, $convertedDS, $packageName, $publicExtensionDirectory,
+                $innerPathes, $resultingFileName, $yamlFileName
+            );
 
             if (isset($to['childTO'])) {
                 foreach ($to['childTO'] as $childTo) {
                     if ($childTo['fileref'] !== $to['fileref']) {
-                        $resultingFileName = $this->copyFile($childTo['fileref'], $copiedTemplateFiles, $publicExtensionDirectory, $innerPathes['templates'], $childTo['rendertype']);
+                        $resultingFileName = $this->copyFile(
+                            $childTo['fileref'], $copiedTemplateFiles, $publicExtensionDirectory,
+                            $innerPathes['templates'], $childTo['rendertype']
+                        );
                     }
 
                     // Add rendertype name to filename before .tvp.yaml
-                    $yamlChildFileName = substr($yamlFileName, 0, -strlen('.tvp.yaml')) . '_' . $childTo['rendertype'] . '.tvp.yaml';
+                    $yamlChildFileName = substr(
+                            $yamlFileName, 0, -strlen('.tvp.yaml')
+                        ) . '_' . $childTo['rendertype'] . '.tvp.yaml';
 
                     // childTemplates should use the DS from parent, as they are only processed in FE
                     // So set it to parent datastructure to take the field processing into account.
@@ -989,7 +1119,10 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                         $childTo['datastructure'] = $to['datastructure'];
                     }
                     // No scopePath/Name from child convert call used
-                    list($childMappingConfiguration) = $this->convertDsToForOneTo($allDs, $childTo, $copiedBackendLayoutFiles, $convertedDS, $packageName, $publicExtensionDirectory, $innerPathes, $resultingFileName, $yamlChildFileName);
+                    [$childMappingConfiguration] = $this->convertDsToForOneTo(
+                        $allDs, $childTo, $copiedBackendLayoutFiles, $convertedDS, $packageName,
+                        $publicExtensionDirectory, $innerPathes, $resultingFileName, $yamlChildFileName
+                    );
                     $this->cleanupChildMappingConfiguration($mappingConfiguration, $childMappingConfiguration);
                     $mappingConfiguration['tvp-mapping']['childTemplate'][$childTo['rendertype']] = $childMappingConfiguration['tvp-mapping'];
                 }
@@ -1002,7 +1135,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 
             GeneralUtility::writeFile(
                 $publicExtensionDirectory . $innerPathes['mappingConfiguration'][$scopeName] . '/' . $yamlFileName,
-                \Symfony\Component\Yaml\Yaml::dump($mappingConfiguration, 100, 4, \Symfony\Component\Yaml\Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK) // No inline style please
+                \Symfony\Component\Yaml\Yaml::dump(
+                    $mappingConfiguration, 100, 4, \Symfony\Component\Yaml\Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK
+                ) // No inline style please
             );
         }
 
@@ -1020,9 +1155,13 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         return $covertingInstructions;
     }
 
-    function convertDsToForOneTo(array $allDs, array $to, array &$copiedBackendLayoutFiles, array &$convertedDS, string $packageName, string $publicExtensionDirectory, array $innerPathes, string $templateFileName, string $yamlFileName): array
-    {
-        $convertedDsConfig = $this->getAndConvertDsForTo($allDs, $to, $convertedDS, $packageName, $publicExtensionDirectory, $innerPathes);
+    function convertDsToForOneTo(
+        array $allDs, array $to, array &$copiedBackendLayoutFiles, array &$convertedDS, string $packageName,
+        string $publicExtensionDirectory, array $innerPathes, string $templateFileName, string $yamlFileName
+    ): array {
+        $convertedDsConfig = $this->getAndConvertDsForTo(
+            $allDs, $to, $convertedDS, $packageName, $publicExtensionDirectory, $innerPathes
+        );
 
         $templateMappingInfo = $this->convertTemplateMappingInformation(
             unserialize($to['templatemapping'])['MappingInfo'],
@@ -1045,7 +1184,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 );
             }
         }
-        $mappingToTemplateInfo = $this->convertDsTo2mappingInformation($dataStructureRoot, $templateMappingInfo['ROOT'], $to);
+        $mappingToTemplateInfo = $this->convertDsTo2mappingInformation(
+            $dataStructureRoot, $templateMappingInfo['ROOT'], $to
+        );
 
         // This gurentees that only one time we write this new content of DS
         $this->saveNewDs($convertedDsConfig);
@@ -1082,7 +1223,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 // Old, in nonStaticDS time this was in the DS record
                 $beLayout = $convertedDsConfig['data']['belayout'];
             }
-            $backendLayoutFileName = $this->copyFile($beLayout, $copiedBackendLayoutFiles, $publicExtensionDirectory, $innerPathes['backendLayout']);
+            $backendLayoutFileName = $this->copyFile(
+                $beLayout, $copiedBackendLayoutFiles, $publicExtensionDirectory, $innerPathes['backendLayout']
+            );
             $mappingConfiguration['tvp-mapping']['combinedBackendLayoutConfigurationIdentifier'] = $packageName . '/BackendLayoutConfiguration:' . $backendLayoutFileName;
         }
 
@@ -1090,7 +1233,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 
         GeneralUtility::writeFile(
             $publicExtensionDirectory . $innerPathes['templateConfiguration'][$convertedDsConfig['scopeName']] . '/' . $yamlFileName,
-            \Symfony\Component\Yaml\Yaml::dump($templateConfiguration, 100, 4, \Symfony\Component\Yaml\Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK) // No inline style please
+            \Symfony\Component\Yaml\Yaml::dump(
+                $templateConfiguration, 100, 4, \Symfony\Component\Yaml\Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK
+            ) // No inline style please
         );
 
         return [$mappingConfiguration, $convertedDsConfig['scopeName'], $convertedDsConfig['scopePath']];
@@ -1113,7 +1258,8 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             } else {
                 // Or check every field config parameter
                 foreach ($parentFieldConfig as $parentFieldConfigParam => $parentFieldConfigValue) {
-                    if (isset($childFieldConfig[$parentFieldConfigParam])
+                    if (
+                        isset($childFieldConfig[$parentFieldConfigParam])
                         && $childFieldConfig[$parentFieldConfigParam] === $parentFieldConfigValue
                     ) {
                         unset($child['tvp-mapping']['mappingToTemplate'][$fieldName][$parentFieldConfigParam]);
@@ -1140,8 +1286,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         );
     }
 
-    protected function convertTemplateMappingInformation(array $mappingInformation, string $templateFile, $domDocument = null, $baseNode = null): array
-    {
+    protected function convertTemplateMappingInformation(
+        array $mappingInformation, string $templateFile, $domDocument = null, $baseNode = null
+    ): array {
         $converted = [];
 
         libxml_use_internal_errors(true);
@@ -1153,10 +1300,10 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         }
 
         /** @TODO Check the errors if they are fatal
-        $errors = libxml_get_errors();
-        foreach ($errors as $error)
-        {
-        }*/
+         * $errors = libxml_get_errors();
+         * foreach ($errors as $error)
+         * {
+         * }*/
 
         libxml_clear_errors();
 
@@ -1164,7 +1311,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         $domXpath = new \DOMXPath($domDocument);
 
         foreach ($mappingInformation as $fieldName => $mappingField) {
-            list($xPath, $mappingType) = explode('/', $mappingField['MAP_EL']);
+            [$xPath, $mappingType] = explode('/', $mappingField['MAP_EL']);
 
             $convertedXPath = $this->convertXPath($xPath);
 
@@ -1203,7 +1350,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 if ($mappingType === 'inner') {
                     $innerBaseNode = $result->item(0);
                 }
-                $converted[$fieldName]['container'] = $this->convertTemplateMappingInformation($mappingField['el'], $templateFile, $domDocument, $innerBaseNode);
+                $converted[$fieldName]['container'] = $this->convertTemplateMappingInformation(
+                    $mappingField['el'], $templateFile, $domDocument, $innerBaseNode
+                );
             }
         }
 
@@ -1281,7 +1430,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                     $fieldConfig['valueProcessing'] = 'container';
                     $templateMappingInfo['container'][$fieldName]['containerType'] = 'box';
                 }
-                $fieldConfig['container'] = $this->convertDsTo2mappingInformation($dsElement, $templateMappingInfo['container'][$fieldName], $to);
+                $fieldConfig['container'] = $this->convertDsTo2mappingInformation(
+                    $dsElement, $templateMappingInfo['container'][$fieldName], $to
+                );
             }
 
             if ($useHtmlValue) {
@@ -1339,8 +1490,10 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         return implode('/', $xPathPartsConverted);
     }
 
-    protected function getAndConvertDsForTo(array $allDs, array $to, array &$convertedDS, string $packageName, string $publicExtensionDirectory, array $innerPathes): array
-    {
+    protected function getAndConvertDsForTo(
+        array $allDs, array $to, array &$convertedDS, string $packageName, string $publicExtensionDirectory,
+        array $innerPathes
+    ): array {
         if ($to['datastructure'] === '') {
             return [];
         }
@@ -1444,7 +1597,8 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 
     protected function saveNewDs(array &$convertedDs): void
     {
-        if (isset($convertedDs['dataStructureCleaned']['ROOT'])
+        if (
+            isset($convertedDs['dataStructureCleaned']['ROOT'])
             && isset($convertedDs['dataStructureCleaned']['ROOT']['el'])
             && count($convertedDs['dataStructureCleaned']['ROOT']['el']) > 0
         ) {
@@ -1465,11 +1619,15 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 return $ds;
             }
         }
-        throw new \Exception('DataStructure "' . $to['datastructure'] . '" not found for Template Object with uid "' . $to['uid'] . '"');
+        throw new \Exception(
+            'DataStructure "' . $to['datastructure'] . '" not found for Template Object with uid "' . $to['uid'] . '"'
+        );
     }
 
-    protected function copyFile(string $readPathAndFilename, array &$copiedTemplateFiles, string $publicExtensionDirectory, string $subPath, string $extraPart = ''): string
-    {
+    protected function copyFile(
+        string $readPathAndFilename, array &$copiedTemplateFiles, string $publicExtensionDirectory, string $subPath,
+        string $extraPart = ''
+    ): string {
         $source = GeneralUtility::getFileAbsFileName($readPathAndFilename);
 
         if (isset($copiedTemplateFiles[$source])) {
@@ -1498,7 +1656,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 
         $copiedTemplateFiles[$source] = $filename;
 
-        return  $filename;
+        return $filename;
     }
 
     protected function createPaths(string $publicExtensionDirectory, array $innerSubPaths)
@@ -1566,7 +1724,8 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         try {
             $installUtility->install($selection);
         } catch (\UnexpectedValueException $e) {
-            $errors[] = 'Error while installing Extension. Please do this by your own. Original message from extension manager is: "' . $e->getMessage() . '"';
+            $errors[] = 'Error while installing Extension. Please do this by your own. Original message from extension manager is: "' . $e->getMessage(
+                ) . '"';
         }
 
         // Read mapping information from json
@@ -1579,7 +1738,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
         $queryBuilderPages = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
         $queryBuilderPages->getRestrictions()->removeAll();
         /** @var \TYPO3\CMS\Core\Database\Query\QueryBuilder */
-        $queryBuilderContent = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tt_content');
+        $queryBuilderContent = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
+            'tt_content'
+        );
         $queryBuilderContent->getRestrictions()->removeAll();
 
         foreach ($covertingInstructions as $instruction) {
@@ -1587,7 +1748,10 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             $result = $queryBuilderPagesClone
                 ->update('pages')
                 ->where(
-                    $queryBuilderPagesClone->expr()->eq('tx_templavoilaplus_to', $queryBuilderPagesClone->createNamedParameter($instruction['fromTo'], \PDO::PARAM_INT))
+                    $queryBuilderPagesClone->expr()->eq(
+                        'tx_templavoilaplus_to',
+                        $queryBuilderPagesClone->createNamedParameter($instruction['fromTo'], \PDO::PARAM_INT)
+                    )
                 )
                 ->set('tx_templavoilaplus_map', $instruction['toMap'])
                 ->execute();
@@ -1596,7 +1760,10 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             $result = $queryBuilderPagesClone
                 ->update('pages')
                 ->where(
-                    $queryBuilderPagesClone->expr()->eq('tx_templavoilaplus_next_to', $queryBuilderPagesClone->createNamedParameter($instruction['fromTo'], \PDO::PARAM_INT))
+                    $queryBuilderPagesClone->expr()->eq(
+                        'tx_templavoilaplus_next_to',
+                        $queryBuilderPagesClone->createNamedParameter($instruction['fromTo'], \PDO::PARAM_INT)
+                    )
                 )
                 ->set('tx_templavoilaplus_next_map', $instruction['toMap'])
                 ->execute();
@@ -1605,7 +1772,10 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             $result = $queryBuilderContentClone
                 ->update('tt_content')
                 ->where(
-                    $queryBuilderContentClone->expr()->eq('tx_templavoilaplus_to', $queryBuilderContentClone->createNamedParameter($instruction['fromTo'], \PDO::PARAM_INT))
+                    $queryBuilderContentClone->expr()->eq(
+                        'tx_templavoilaplus_to',
+                        $queryBuilderContentClone->createNamedParameter($instruction['fromTo'], \PDO::PARAM_INT)
+                    )
                 )
                 ->set('tx_templavoilaplus_map', $instruction['toMap'])
                 ->execute();
@@ -1632,7 +1802,8 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
      * See unit tests for detailed examples
      *
      * @param array $array Array to export
-     * @param int $level Internal level used for recursion, do *not* set from outside!
+     * @param int   $level Internal level used for recursion, do *not* set from outside!
+     *
      * @return string String representation of array
      * @throws \RuntimeException
      */
@@ -1678,7 +1849,7 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
                 $stringContent = str_replace('\'', '\\\'', $stringContent);
                 $lines .= '\'' . $stringContent . '\'' . ',' . LF;
             } elseif ($value instanceof UnquotedString) {
-                $lines .= (string) $value . ',' . LF;
+                $lines .= (string)$value . ',' . LF;
             } else {
                 throw new \RuntimeException('Objects are not supported', 1342294987);
             }
@@ -1755,10 +1926,12 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
 class UnquotedString
 {
     private $value = '';
+
     public function __construct(string $value)
     {
         $this->value = $value;
     }
+
     public function __toString(): string
     {
         return $this->value;
