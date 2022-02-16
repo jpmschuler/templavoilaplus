@@ -111,6 +111,7 @@ class FrontendController extends AbstractPlugin
             return $renderer->renderTemplate($templateConfiguration, $processedValues, $row);
         } catch (\Exception $e) {
             var_dump($e->getMessage());
+            var_dump(['table' => $table, 'row' => $row]);
             var_dump($e);
             die('Error message shown');
         }
