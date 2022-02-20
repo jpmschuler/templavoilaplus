@@ -277,7 +277,7 @@ div.warning a {
 }
 
 #moduleWrapper {
-    height: calc(100% - 65px);
+    height: 100%;
 }
 
 .tvp-component-sidebar {
