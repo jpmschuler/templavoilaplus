@@ -261,7 +261,6 @@ div.warning a {
 
 .module-body {
     height: 100%;
-    position: absolute;
     width: 100%;
     top: 65px;
 }
