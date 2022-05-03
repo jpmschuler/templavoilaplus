@@ -170,7 +170,7 @@ class XpathRenderHandler implements RenderHandlerInterface
         }
     }
 
-    protected function processValue($processingNode, $fieldName, array $mappingConfiguration, $processedValues)
+    protected function processValue($processingNode, $fieldName, array $mappingConfiguration, array $processedValues)
     {
         switch ($mappingConfiguration['mappingType']) {
             case 'attrib':
@@ -198,6 +198,13 @@ class XpathRenderHandler implements RenderHandlerInterface
             $processingNode->removeChild($processingNode->firstChild);
         }
 
+        if (empty($processedValues[$fieldName])
+            && isset($mappingConfiguration['removeIfEmpty'])
+            && $mappingConfiguration['removeIfEmpty']
+        ) {
+            $processingNode->parentNode->removeChild($processingNode);
+        }
+
         switch ($mappingConfiguration['valueType']) {
             case 'html':
                 if ($processedValues[$fieldName]) {
@@ -223,10 +230,15 @@ class XpathRenderHandler implements RenderHandlerInterface
         }
     }
 
-    protected function processValueOuter(array $mappingConfiguration, \DOMNode $processingNode, array $processedValues, string $fieldName)
+    protected function processValueOuter(array $mappingConfiguration, \DOMNode $processingNode, array $processedValues, string $fieldName): void
     {
         if (isset($mappingConfiguration['container']) && is_array($mappingConfiguration['container'])) {
             $this->processContainer($processingNode, $mappingConfiguration['container'], $processedValues[$fieldName], $mappingConfiguration['containerType'], 'outer');
+            return;
+        }
+
+        if ($processingNode->parentNode === null) {
+            // Template mapping wrong?
             return;
         }
 

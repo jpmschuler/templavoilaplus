@@ -277,12 +277,14 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             ->getQueryBuilderForTable('tx_templavoilaplus_datastructure');
         $queryBuilder
             ->getRestrictions()
-            ->removeAll()
-            ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+            ->removeAll();
 
         $result = $queryBuilder
             ->select('*')
             ->from('tx_templavoilaplus_datastructure')
+            ->where(
+                $queryBuilder->expr()->neq('deleted', $queryBuilder->createNamedParameter(1, \PDO::PARAM_BOOL))
+            )
             ->orderBy('pid')
             ->execute()
             ->fetchAll();
@@ -312,12 +314,14 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             ->getQueryBuilderForTable('tx_templavoilaplus_tmplobj');
         $queryBuilder
             ->getRestrictions()
-            ->removeAll()
-            ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+            ->removeAll();
 
         $result = $queryBuilder
             ->select('*')
             ->from('tx_templavoilaplus_tmplobj')
+            ->where(
+                $queryBuilder->expr()->neq('deleted', $queryBuilder->createNamedParameter(1, \PDO::PARAM_BOOL))
+            )
             ->orderBy('pid')
             ->execute()
             ->fetchAll();
@@ -471,7 +475,9 @@ class TemplaVoilaPlus8UpdateController extends AbstractUpdateController
             ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
 
         $result = $queryBuilder
-            ->select('uid', 'tx_templavoilaplus_to', 'tx_templavoilaplus_next_to')
+            ->count('uid')
+            ->addSelectLiteral('min(uid) as uid')
+            ->addSelect('tx_templavoilaplus_to', 'tx_templavoilaplus_next_to')
             ->from('pages')
             ->where(
                 $queryBuilder->expr()->neq(
