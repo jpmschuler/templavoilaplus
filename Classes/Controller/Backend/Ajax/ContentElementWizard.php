@@ -41,7 +41,11 @@ class ContentElementWizard extends AbstractResponse
         $contentElementsConfig = $this->modifyContentElementsConfig($contentElementsConfig);
         $contentElementsConfig = $this->convertParamsValue($contentElementsConfig);
 
-        $view = $this->getFluidTemplateObject('EXT:templavoilaplus/Resources/Private/Templates/Backend/Ajax/ContentElements.html');
+        if (version_compare(TYPO3_version, '11.2.0', '>=')) {
+            $view = $this->getFluidTemplateObject('EXT:templavoilaplus/Resources/Private/Templates/Backend/Ajax/ContentElements.html');
+        } else {
+            $view = $this->getFluidTemplateObject('EXT:templavoilaplus/Resources/Private/Templates/Backend/Ajax/ContentElements10LTS.html');
+        }
         $view->assign('contentElementsConfig', $contentElementsConfig);
 
         return new HtmlResponse($view->render());

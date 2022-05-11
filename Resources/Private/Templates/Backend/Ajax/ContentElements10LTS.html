@@ -1,0 +1,38 @@
+{namespace core = TYPO3\CMS\Core\ViewHelpers}
+<div role="tabpanel" class="t3-new-content-element-wizard-window">
+  <ul class="nav nav-tabs t3js-tabs" role="tablist" id="tabs-DTM-tvpage" data-store-last-tab="1">
+    <f:for each="{contentElementsConfig}" as="section" key="sectionKey">
+      <li role="presentation" class="t3js-tabmenu-item">
+        <a class="nav-link" id="nav-{sectionKey}-tab" data-toggle="tab" href="#nav-{sectionKey}" role="tab" aria-controls="nav-{sectionKey}" aria-selected="false">{section.label}</a>
+      </li>
+    </f:for>
+  </ul>
+  <div class="tab-content" id="nav-tabContent">
+    <f:for each="{contentElementsConfig}" as="section" key="sectionKey">
+      <div class="tab-pane {f:if(condition: '{sectionKey} == \'common\'', then:'active')}" id="nav-{sectionKey}" role="tabpanel" aria-labelledby="nav-{sectionKey}-tab">
+        <div class="panel panel-tab">
+          <div class="panel-body">
+            <f:for each="{section.contentElements}" as="contentElement" key="contentElementKey">
+              <div class="row media media-new-content-element-wizard tvjs-drag" data-elementRow="{contentElement.element-row -> f:format.json()}">
+                <div class="col-1 media-left dragHandle">
+                  <core:icon identifier="{contentElement.iconIdentifier}" size="default"/>
+                </div>
+                <div class="col-11 media-body">
+                  <div><b>{contentElement.title}</b></div>
+                  <div>{contentElement.description}</div>
+                </div>
+              </div>
+            </f:for>
+          </div>
+        </div>
+      </div>
+    </f:for>
+  </div>
+</div>
+
+<script>
+    $('#nav-tab a').on('click', function (e) {
+        e.preventDefault()
+        $(this).tab('show')
+    })
+</script>
