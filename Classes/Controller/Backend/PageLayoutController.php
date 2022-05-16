@@ -120,6 +120,20 @@ class PageLayoutController extends ActionController
     /** @var \TYPO3\CMS\Backend\Clipboard\Clipboard */
     protected $typo3Clipboard;
 
+    /**
+     * @var BackendConfiguration
+     */
+    protected $configuration;
+
+    /**
+     * TODO: there properties were never defined, probably all code accessing them can be simplified
+     *
+     * they are added here nevertheless to allow php8compat without the need to refactor now
+     */
+    protected $translatorMode = null;
+    protected $rootElementTable = null;
+    protected $rootElementRecord = null;
+
     public function __construct()
     {
         $this->configuration = new BackendConfiguration();
@@ -138,8 +152,8 @@ class PageLayoutController extends ActionController
         $this->pageId = (int)GeneralUtility::_GP('id');
         $pageTsConfig = BackendUtility::getPagesTSconfig($this->pageId);
         // @TODO Get rid of this properties key
-        $this->modSharedTSconfig['properties'] = $pageTsConfig['mod.']['SHARED.'];
-        $this->modTSconfig['properties'] = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.'];
+        $this->modSharedTSconfig['properties'] = $pageTsConfig['mod.']['SHARED.'] ?? [];
+        $this->modTSconfig['properties'] = $pageTsConfig['mod.']['web_txtemplavoilaplusLayout.'] ?? [];
 
         $this->initializeCurrentLanguage();
 
@@ -191,6 +205,8 @@ class PageLayoutController extends ActionController
             // Additional footer content
             $contentFooter = $this->renderFunctionHook('renderFooter');
         } else {
+            $pageTitle = '';
+            $activePage = [];
             if (GeneralUtility::_GP('id') === '0') {
                 // normaly no page selected
                 $this->addFlashMessage(
@@ -215,7 +231,7 @@ class PageLayoutController extends ActionController
         $this->view->assign('pageInfo', $this->pageInfo);
         $this->view->assign('pageTitle', $pageTitle);
         $this->view->assign('pageDescription', $activePage[$GLOBALS['TCA']['pages']['ctrl']['descriptionColumn']] ?? '');
-        $this->view->assign('pageDoktype', $activePage['doktype']);
+        $this->view->assign('pageDoktype', $activePage['doktype'] ?? null);
         $this->view->assign('pageMessages', $this->getFlashMessageQueue('TVP')->getAllMessages());
 
         $this->view->assign('calcPerms', $this->calcPerms);
@@ -398,7 +414,10 @@ class PageLayoutController extends ActionController
             'actions-document-view'
         );
 
-        if (!$this->modTSconfig['properties']['disableIconToolbar']) {
+        if (
+            !isset($this->modTSconfig['properties']['disableIconToolbar'])
+            || !$this->modTSconfig['properties']['disableIconToolbar']
+        ) {
             if (!$this->translatorMode) {
                 if ($this->permissionPageNew()) {
                     // Create new page (wizard)

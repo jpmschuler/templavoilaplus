@@ -89,29 +89,8 @@ parameters:
 			message: "#^Call to an undefined static method TYPO3\\\\CMS\\\\Backend\\\\Utility\\\\BackendUtility\\:\\:getModuleUrl\\(\\)\\.$#"
 			count: 1
 			path: Classes/Controller/Backend/Handler/DoktypeShortcutHandler.php
-
-		-
-			message: "#^Access to an undefined property Tvp\\\\TemplaVoilaPlus\\\\Controller\\\\Backend\\\\PageLayoutController\\:\\:\\$configuration\\.$#"
-			count: 3
-			path: Classes/Controller/Backend/PageLayoutController.php
-
 		-
 			message: "#^Access to an undefined property Tvp\\\\TemplaVoilaPlus\\\\Controller\\\\Backend\\\\PageLayoutController\\:\\:\\$pageRenderer\\.$#"
-			count: 1
-			path: Classes/Controller/Backend/PageLayoutController.php
-
-		-
-			message: "#^Access to an undefined property Tvp\\\\TemplaVoilaPlus\\\\Controller\\\\Backend\\\\PageLayoutController\\:\\:\\$rootElementRecord\\.$#"
-			count: 1
-			path: Classes/Controller/Backend/PageLayoutController.php
-
-		-
-			message: "#^Access to an undefined property Tvp\\\\TemplaVoilaPlus\\\\Controller\\\\Backend\\\\PageLayoutController\\:\\:\\$rootElementTable\\.$#"
-			count: 1
-			path: Classes/Controller/Backend/PageLayoutController.php
-
-		-
-			message: "#^Access to an undefined property Tvp\\\\TemplaVoilaPlus\\\\Controller\\\\Backend\\\\PageLayoutController\\:\\:\\$translatorMode\\.$#"
 			count: 1
 			path: Classes/Controller/Backend/PageLayoutController.php
 
