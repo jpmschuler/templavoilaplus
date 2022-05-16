@@ -126,6 +126,11 @@ class PageLayoutController extends ActionController
     protected $configuration;
 
     /**
+     * @var PageRenderer
+     */
+    protected $pageRenderer;
+
+    /**
      * TODO: there properties were never defined, probably all code accessing them can be simplified
      *
      * they are added here nevertheless to allow php8compat without the need to refactor now
@@ -559,6 +564,7 @@ class PageLayoutController extends ActionController
                         )
                     );
                 } else {
+                    /** @phpstan-ignore-next-line just here for 8LTS compat */
                     $url = BackendUtility::getModuleUrl(
                         $module,
                         array_merge(
