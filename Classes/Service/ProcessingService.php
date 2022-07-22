@@ -22,6 +22,7 @@ use Tvp\TemplaVoilaPlus\Exception\ConfigurationException;
 use Tvp\TemplaVoilaPlus\Exception\InvalidIdentifierException;
 use Tvp\TemplaVoilaPlus\Exception\MissingPlacesException;
 use Tvp\TemplaVoilaPlus\Utility\ApiHelperUtility;
+use Tvp\TemplaVoilaPlus\Utility\TemplaVoilaUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Configuration\FlexForm\Exception\InvalidIdentifierException as CoreInvalidIdentifierException;
 use TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools;
@@ -87,6 +88,8 @@ class ProcessingService
         // Load sheet informations
 
         $node['localization'] = $this->getLocalizationForNode($node);
+
+        $node['localizationActions'] = $this->getLocalizationActionsForMissingLocalizations($node, $basePid);
 
         // Get node childs:
         $node['childNodes'] = $this->getNodeChilds($node, $basePid, $usedElements);
@@ -309,6 +312,21 @@ class ProcessingService
         }
 
         return $localization;
+    }
+
+    public function getLocalizationActionsForMissingLocalizations(array $node, int $pid): array
+    {
+        $localizationActions = [];
+        $existingLocalizations = array_keys($node['localization']);
+        $availableLanguages = TemplaVoilaUtility::getAvailableLanguages($pid);
+        $availableLanguageKeys = array_keys($availableLanguages);
+        foreach ($availableLanguageKeys as $languageId) {
+            if ($languageId > 0 && !in_array($languageId, $existingLocalizations)) {
+                $params = '&cmd[tt_content][' . $node['raw']['entity']['uid'] . '][localize]=' . $languageId;
+                $localizationActions[$languageId]['actionUrl'] = BackendUtility::getLinkToDataHandlerAction($params);
+            }
+        }
+        return $localizationActions;
     }
 
     public function getNodeChilds(array $node, int $basePid, array &$usedElements): array
