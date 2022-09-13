@@ -31,10 +31,11 @@ class LocalizationRepository
     /**
      * Fetch all available languages
      *
-     * @param int $pageId
+     * @param string $table
+     * @param int $uid
      * @return array
      */
-    public function fetchRecordLocalizations(string $table, int $uid): array
+    public static function fetchRecordLocalizations(string $table, int $uid): array
     {
         $result = [];
 
