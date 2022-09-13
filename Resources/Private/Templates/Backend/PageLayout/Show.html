@@ -96,7 +96,6 @@
 </f:section>
 
 <f:section name="Header">
-
     <f:format.raw>{contentHeader}</f:format.raw>
 
     <h1 id="tvpPageTitle" data-identifier="tvpPageTitle">{pageTitle}</h1>
@@ -142,7 +141,7 @@
                             </f:if>
                         </div>
                     </li>
-                    <f:if condition="{settings.configuration.moreThanOneLanguageAvailable}">
+                    <f:if condition="{settings.configuration.moreThanOneLanguageShouldBeShown}">
                         <li class="sidenav-item disabled" id="navbarLanguages">
                             <div>
                                 <core:icon identifier="flags-multiple" size="default" />
