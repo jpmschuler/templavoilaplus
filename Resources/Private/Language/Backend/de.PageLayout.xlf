@@ -131,8 +131,8 @@
                 <target>Lokalisierungen</target>
             </trans-unit>
             <trans-unit id="createCopyForTranslation" resname="createCopyForTranslation">
-                <source>Create a copy for translation</source>
-                <target>Eine Kopie für die Übersetzung erzeugen</target>
+                <source>Create a copy for translation "%s (%s)"</source>
+                <target>Eine Kopie für die Übersetzung "%s (%s)" erzeugen</target>
             </trans-unit>
             <trans-unit id="newContentElementWizard.fce" resname="newContentElementWizard.fce">
                 <source>FCE</source>
