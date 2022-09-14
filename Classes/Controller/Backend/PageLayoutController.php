@@ -111,6 +111,20 @@ class PageLayoutController extends ActionController
     protected $allAvailableLanguages = [];
 
     /**
+     * Same as $allAvailableLanguages, except filtered for if a valid page record for the language exists.
+     * the translated pages can be hidden, but not deleted.
+     *
+     * @var array
+     */
+    protected $allExistingPageLanguages = [];
+
+    /**
+     * the languages navbar should only be enabled if necessary
+     * @var bool
+     */
+    protected $localizationPossible = true;
+
+    /**
      * Contains requested fluid partials in rendering areas
      *
      * @var array
@@ -149,8 +163,10 @@ class PageLayoutController extends ActionController
         /** @TODO better handle this with an configuration object */
         $this->settings['configuration'] = [
             'allAvailableLanguages' => $this->allAvailableLanguages,
-            // If we have more then "all-languages" and 1 editors language available
-            'moreThenOneLanguageAvailable' => count($this->allAvailableLanguages) > 2 ? true : false,
+            'allExistingPageLanguages' => $this->allExistingPageLanguages,
+            'moreThanOneLanguageShouldBeShown' => count($this->allExistingPageLanguages) > 1 ? true : false,
+            'languageAspect' => $this->languageAspect,
+            'localizationPossible' => $this->localizationPossible,
             'lllFile' => 'LLL:EXT:templavoilaplus/Resources/Private/Language/Backend/PageLayout.xlf',
             'userSettings' => TemplaVoilaUtility::getBackendUser()->uc['templavoilaplus'] ?? [],
             'is8orNewer' => version_compare(TYPO3_version, '8.0.0', '>=') ? true : false,
@@ -253,8 +269,6 @@ class PageLayoutController extends ActionController
         $this->view->assign('calcPerms', $this->calcPerms);
         $this->view->assign('basicEditRights', $this->hasBasicEditRights(isset($this->pageInfo['uid']) ? 'pages' : null, isset($this->pageInfo['uid']) ? $this->pageInfo : null));
         $this->view->assign('clipboard', $this->clipboard2fluid());
-
-
         $this->view->assign('contentPartials', $this->contentPartials);
         // @TODO Deprecate following parts and the renderFunctionHooks? Replace them with Handlers?
         // Or use these hooks so they can add Partials?
@@ -739,6 +753,9 @@ class PageLayoutController extends ActionController
     {
         // Fill array allAvailableLanguages and currently selected language (from language selector or from outside)
         $this->allAvailableLanguages = TemplaVoilaUtility::getAvailableLanguages($this->pageId, true, true, $this->modSharedTSconfig);
+        // navbarLanguage should be disabled if the site has just one language
+        $this->localizationPossible = count($this->allAvailableLanguages) > 2;
+        $this->allExistingPageLanguages = TemplaVoilaUtility::getExistingPageLanguages($this->pageId, true, true, $this->modSharedTSconfig);
         $languageFromSession = (int)TemplaVoilaUtility::getBackendUser()->getSessionData('templavoilaplus.language');
         // determine language parameter
         $this->currentLanguageUid = (int)GeneralUtility::_GP('language') > 0

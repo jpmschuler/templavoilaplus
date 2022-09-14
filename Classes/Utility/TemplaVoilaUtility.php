@@ -15,6 +15,7 @@ namespace Tvp\TemplaVoilaPlus\Utility;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Tvp\TemplaVoilaPlus\Domain\Repository\Localization\LocalizationRepository;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -47,6 +48,7 @@ final class TemplaVoilaUtility
 
     /**
      * @param string $tableName
+     *
      * @return \TYPO3\CMS\Core\Database\Query\QueryBuilder
      */
     public static function getQueryBuilderForTable($tableName): QueryBuilder
@@ -103,6 +105,11 @@ final class TemplaVoilaUtility
      */
     public static function getAvailableLanguages($id = 0, $setDefault = true, $setMulti = false, array $modSharedTSconfig = [])
     {
+        if (!$modSharedTSconfig) {
+            $pageTsConfig = BackendUtility::getPagesTSconfig($id);
+            // @TODO Get rid of this properties key
+            $modSharedTSconfig['properties'] = $pageTsConfig['mod.']['SHARED.'];
+        }
         $useStaticInfoTables = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables');
 
         $languages = [];
@@ -186,6 +193,137 @@ final class TemplaVoilaUtility
         return $languages;
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * This presents a generic interface to get the localization config for a specific page
+     * Basically it should cover fallbacktype and fallbacks (site handling era).
+     *
+     * It sums up info about system, site and page as e.g. the page could marked as no-fallback
+     * although the site is configured differently. In order to make this as flexible as possible
+     * it just configures the typical defaults and enriches them step by step with actual LTS-specific
+     * info
+     *
+     * @see LanguageAspectFactory::createFromSiteLanguage()
+     *
+     * @param int $pageId
+     *
+     */
+    public static function fetchLanguageAspect(int $pageId, int $languageId = 0)
+    {
+        // pages.l18n_cfg consideration, it uses a bitmask field
+        $row = BackendUtility::getRecordWSOL('pages', $pageId, 'l18n_cfg');
+        $PAGES_L18NCFG_HIDEDEFAULT = 0b0001; // 1
+        $PAGES_L18NCFG_HIDEIFNOTTRANSLATED = 0b0010; // 2
+        $fallbackTypeOverride = null;
+        // There is a global conf var hidePagesIfNotTranslatedByDefault which changes the behaviour
+        // of HIDEIFNOTTRANSLATED, we only need the override if that is not set (because else it means mixed/default)
+        if (($row['l18n_cfg'] & $PAGES_L18NCFG_HIDEIFNOTTRANSLATED) && (!$GLOBALS['TYPO3_CONF_VARS']['FE']['hidePagesIfNotTranslatedByDefault'])) {
+            $fallbackTypeOverride = 'strict';
+        }
+        if ($row['l18n_cfg'] & $PAGES_L18NCFG_HIDEDEFAULT) {
+            $fallbackTypeOverride = 'free';
+        }
+
+        // site handling exists (>=9LTS)
+        if (class_exists(SiteFinder::class)) {
+            try {
+                $currentSite = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId($pageId);
+                if ($currentSite) {
+                    $currentSiteLanguage = $currentSite->getLanguageById($languageId);
+
+                    $languageId = $currentSiteLanguage->getLanguageId();
+                    $fallbackType = $fallbackTypeOverride ?? $currentSiteLanguage->getFallbackType();
+                    $fallbackOrder = $currentSiteLanguage->getFallbackLanguageIds();
+                    $fallbackOrder[] = 'pageNotFound';
+                    switch ($fallbackType) {
+                        // Fall back to other language, if the page does not exist in the requested language
+                        // But always fetch only records of this specific (available) language
+                        case 'free':
+                            $overlayType = LanguageAspect::OVERLAYS_OFF;
+                            break;
+
+                        // Fall back to other language, if the page does not exist in the requested language
+                        // Do overlays, and keep the ones that are not translated
+                        case 'fallback':
+                            $overlayType = LanguageAspect::OVERLAYS_MIXED;
+                            break;
+
+                        // Same as "fallback" but remove the records that are not translated
+                        case 'strict':
+                            $overlayType = LanguageAspect::OVERLAYS_ON_WITH_FLOATING;
+                            break;
+
+                        // Ignore, fallback to default language
+                        default:
+                            $fallbackOrder = [0];
+                            $overlayType = LanguageAspect::OVERLAYS_OFF;
+                    }
+
+                    return GeneralUtility::makeInstance(LanguageAspect::class, $languageId, $languageId, $overlayType, $fallbackOrder);
+                }
+            } catch (SiteNotFoundException|\InvalidArgumentException $e) {
+                // if site not found, then there is no language config, e.g. pid=0 or root sysfolders for stuff
+                // languageId should always be valid argument, except for '-1'
+            }
+        }
+
+        // before site handling exists (<=8LTS)
+        // sane defaults: current language should be shown in mixed mode (default with translation overlay)
+        // this is the recommended configuration
+        // s. https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/ApiOverview/Context/Index.html#language-aspect
+        $languageAspect['id'] = $languageId;
+        $languageAspect['contentId'] = $languageId;
+        $languageAspect['fallbackChain'] = 0;
+        $languageAspect['overlayType'] = 'mixed';
+
+        // @TODO sys_language_mode strict and free support.
+        // it would be necessary to get the $legacyLanguageConfig for  a specific languageID - I think that is in fact
+        // impossible. Fallback to langId=0 could work or we keep it the current way, because we actually might not need
+        // it anyways
+        //
+        // if ($legacyLanguageConfig['sys_language_mode'] == 'strict') {
+        //     $languageAspect['overlayType'] = 'includeFloating';
+        // }
+        // if ($legacyLanguageConfig['sys_language_mode'] == 'strict' && $fallbackTypeOverride == 'strict') {
+        //     $languageAspect['fallbackChain'] = [];
+        // }
+        // if ($legacyLanguageConfig['sys_language_mode'] == 'free') {
+        //     $languageAspect['overlayType'] = 'off;
+        // }
+
+        return ($languageAspect);
+    }
+
+    /*
+     * Returns an array of existing page translations (including hidden, including default=0)
+     *
+     * @param int $id If zero, the query will select all sys_language records from root level. If set to another value, the query will select all sys_language records that has a pages_language_overlay record on that page (and is not hidden, unless you are admin user)
+     * @param bool $onlyIsoCoded If set, only languages which are paired witch have a ISO code set (via core or static_info_tables)
+     * @param bool $setDefault If set, an array entry for a default language is added (uid 0).
+     * @param bool $setMulti If set, an array entry for "multiple languages" is added (uid -1)
+     * @param array $modSharedTSconfig
+     *
+     * @return array
+     */
+    public static function getExistingPageLanguages($id = 0, $setDefault = true, $setMulti = false, array $modSharedTSconfig = [])
+    {
+        $languages = static::getAvailableLanguages($id, $setDefault, $setMulti, $modSharedTSconfig);
+        $resultingLanguages = [];
+        $resultingLanguages[0] = $languages[0]; // stick to default lang here; TODO: free mode without 0 translation
+        if ($id > 0) {
+            $existingLanguages = LocalizationRepository::fetchRecordLocalizations('pages', $id);
+            foreach ($existingLanguages as $existingLanguage) {
+                $existingLanguageId = $existingLanguage[$GLOBALS['TCA']['pages']['ctrl']['languageField']];
+                if (isset($languages[$existingLanguageId])) {
+                    $resultingLanguages[$existingLanguageId] = $languages[$existingLanguageId];
+                }
+            }
+        }
+        return $resultingLanguages;
+    }
+
+>>>>>>> 78ba1039 ([TASK] hide tt_content-localization buttons if no valid page translation exists)
     public static function getUseableLanguages(int $pageId = 0)
     {
         $foundLanguages = [];
@@ -371,14 +509,14 @@ final class TemplaVoilaUtility
                         $references[$ref['tablename']][$ref['recuid']] = false;
                         $references[$ref['tablename']][$ref['recuid']]
                             = self::hasElementForeignReferences(
-                                [
-                                    'table' => $ref['tablename'],
-                                    'uid' => $ref['recuid'],
-                                ],
-                                $pid,
-                                $recursion - 1,
-                                $references
-                            );
+                            [
+                                'table' => $ref['tablename'],
+                                'uid' => $ref['recuid'],
+                            ],
+                            $pid,
+                            $recursion - 1,
+                            $references
+                        );
                     }
                 }
             }
@@ -416,7 +554,7 @@ final class TemplaVoilaUtility
     {
         $flexFormTools = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools::class);
         $dataStructureIdentifier = $flexFormTools->getDataStructureIdentifier(
-            [ 'config' => $conf ],
+            ['config' => $conf],
             $table,
             $fieldName,
             $row
