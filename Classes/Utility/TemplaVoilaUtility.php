@@ -18,11 +18,13 @@ namespace Tvp\TemplaVoilaPlus\Utility;
 use Tvp\TemplaVoilaPlus\Domain\Repository\Localization\LocalizationRepository;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\BackendWorkspaceRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
+use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Site\Entity\NullSite;
 use TYPO3\CMS\Core\Site\PseudoSiteFinder;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -193,8 +195,6 @@ final class TemplaVoilaUtility
         return $languages;
     }
 
-<<<<<<< HEAD
-=======
     /**
      * This presents a generic interface to get the localization config for a specific page
      * Basically it should cover fallbacktype and fallbacks (site handling era).
@@ -213,8 +213,8 @@ final class TemplaVoilaUtility
     {
         // pages.l18n_cfg consideration, it uses a bitmask field
         $row = BackendUtility::getRecordWSOL('pages', $pageId, 'l18n_cfg');
-        $PAGES_L18NCFG_HIDEDEFAULT = 0b0001; // 1
-        $PAGES_L18NCFG_HIDEIFNOTTRANSLATED = 0b0010; // 2
+        $PAGES_L18NCFG_HIDEDEFAULT = 0b0001; /* bitmask 1 */
+        $PAGES_L18NCFG_HIDEIFNOTTRANSLATED = 0b0010; /* bitmask 2 */
         $fallbackTypeOverride = null;
         // There is a global conf var hidePagesIfNotTranslatedByDefault which changes the behaviour
         // of HIDEIFNOTTRANSLATED, we only need the override if that is not set (because else it means mixed/default)
@@ -262,9 +262,10 @@ final class TemplaVoilaUtility
 
                     return GeneralUtility::makeInstance(LanguageAspect::class, $languageId, $languageId, $overlayType, $fallbackOrder);
                 }
-            } catch (SiteNotFoundException|\InvalidArgumentException $e) {
+            } catch (SiteNotFoundException | \InvalidArgumentException $e) {
                 // if site not found, then there is no language config, e.g. pid=0 or root sysfolders for stuff
                 // languageId should always be valid argument, except for '-1'
+                $languageAspect = [];
             }
         }
 
@@ -310,7 +311,7 @@ final class TemplaVoilaUtility
     {
         $languages = static::getAvailableLanguages($id, $setDefault, $setMulti, $modSharedTSconfig);
         $resultingLanguages = [];
-        $resultingLanguages[0] = $languages[0]; // stick to default lang here; TODO: free mode without 0 translation
+        $resultingLanguages[0] = $languages[0]; /* stick to default lang here; @TODO: free mode without 0 translation */
         if ($id > 0) {
             $existingLanguages = LocalizationRepository::fetchRecordLocalizations('pages', $id);
             foreach ($existingLanguages as $existingLanguage) {
@@ -323,7 +324,6 @@ final class TemplaVoilaUtility
         return $resultingLanguages;
     }
 
->>>>>>> 78ba1039 ([TASK] hide tt_content-localization buttons if no valid page translation exists)
     public static function getUseableLanguages(int $pageId = 0)
     {
         $foundLanguages = [];
@@ -507,8 +507,7 @@ final class TemplaVoilaUtility
                     if (!isset($references[$ref['tablename']][$ref['recuid']])) {
                         // initialize with false to avoid recursion without affecting inner OR combinations
                         $references[$ref['tablename']][$ref['recuid']] = false;
-                        $references[$ref['tablename']][$ref['recuid']]
-                            = self::hasElementForeignReferences(
+                        $references[$ref['tablename']][$ref['recuid']] = self::hasElementForeignReferences(
                             [
                                 'table' => $ref['tablename'],
                                 'uid' => $ref['recuid'],
