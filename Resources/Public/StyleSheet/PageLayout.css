@@ -167,6 +167,38 @@ div.tvjs-dropzone {
     padding: 8px 12px;
 }
 
+.tvp-page-header {
+    background-color: transparent !important;
+}
+
+.tvp-localization-info-pages {
+    margin-top: -.5rem;
+    margin-left: 1.7rem;
+    margin-bottom: 1rem;
+    width: fit-content;
+    min-width: 300px;
+    max-width: 100%;
+}
+.tvp-localization-info-pages-withflags {
+    margin-left: 2.85rem;
+}
+
+.tvp-localization-info-pages .card {
+    margin-bottom: .1rem;
+}
+
+.tvp-localization-row {
+    margin-bottom: .5rem;
+}
+
+.tvp-localization-row .tvp-node-header {
+    padding: 0 .2rem;
+}
+
+.tvp-localization-info-pages .tvp-node-title {
+    padding-right: .2rem;
+}
+
 .tvp-node:hover .tvp-node:hover .card-body {
     opacity: 1;
 }
@@ -185,6 +217,14 @@ div.tvjs-dropzone {
     flex-wrap: nowrap;
 }
 
+.tvp-page-header .tvp-node-header-icons-left {
+    margin-top: -.5em;
+}
+
+.tvp-page-header .tvp-node-header-icons-left .tvp-page-flag{
+    margin-left: .2em;
+}
+
 .tvp-node-title {
     font-size: .9375rem;
     white-space: nowrap;
@@ -194,6 +234,19 @@ div.tvjs-dropzone {
     padding-bottom: 4px;
     padding-top: 4px;
     text-overflow: ellipsis;
+}
+
+.tvp-page-header {
+    font-size: 1.6875rem;
+    padding-left: 0 !important;
+}
+.tvp-page-header .tvp-node-title {
+    font-size: 1.6875rem;
+    font-family: 'Source Sans Pro',sans-serif;
+    font-variant: normal;
+    font-weight: 400;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 .tvp-node-description {
@@ -390,123 +443,4 @@ div.tvjs-dropzone {
 
 .blue {
     background-color: #98c3ff;
-}
-
-/** DARK MODE **/
-
-.dark-mode-on #sidenav {
-    background-color: #2d2d2d;
-}
-
-.dark-mode-on .sidenav-item {
-    background-color: #393939;
-    border-color: #2d2d2d;
-}
-
-.dark-mode-on .sidenav-item.disabled {
-    background-color: #2d2d2d;
-}
-
-.dark-mode-on .dark-mode-on .sidenav-item:hover:not(.disabled) {
-    background-color: #aaa;
-}
-
-/** TYPO3 Module Elements **/
-.dark-mode-on .module {
-    background-color: #666;
-}
-
-.dark-mode-on .module-docheader {
-    border: none;
-    background-color: #2d2d2d;
-    color: #fff;
-}
-
-.dark-mode-on .t3-page-column-header,
-.dark-mode-on .t3-page-ce .t3-page-ce-header {
-    background-color: #393939;
-    color: #999;
-    border: none;
-}
-
-.dark-mode-on .t3-page-ce .t3-page-ce-body {
-    background-color: #666;
-}
-
-.dark-mode-on .btn-default,
-.dark-mode-on .btn-light,
-.dark-mode-on .icon-status-dialog-notification {
-    background-color: #393939;
-    border-color: #999;
-    color: #999;
-}
-
-.dark-mode-on .card,
-.dark-mode-on .panel {
-    background-color: #393939;
-    border-color: #999;
-    color: #999;
-}
-
-.dark-mode-on .bg-light {
-    background-color: rgba(128, 128, 128, var(--bs-bg-opacity)) !important;
-}
-
-.dark-mode-on .nav-tabs,
-.dark-mode-on .panel .panel-heading {
-    background-color: #808080;
-    color: #000;
-}
-
-.dark-mode-on .nav-tabs > li > a.nav-link.active,
-.dark-mode-on .nav.nav-tabs > li:not(.nav-item) > a.active:not(.nav-link) {
-    background-color: #393939;
-    color: #ddd;
-    border-bottom-color: #393939;
-}
-
-.dark-mode-on .bg-info {
-    background-color: rgba(35, 40, 90, var(--bs-bg-opacity)) !important;
-}
-
-/** Tooltipster own dark mode */
-.dark-mode-on .tooltipster-sidetip .tooltipster-box {
-    border: 1px solid #999;
-    background: #393939;
-}
-
-.dark-mode-on .tooltipster-sidetip .tooltipster-content {
-    color: #fff;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-bottom .tooltipster-arrow-background {
-    border-bottom-color: #393939;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-left .tooltipster-arrow-background {
-    border-left-color: #393939;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-right .tooltipster-arrow-background {
-    border-right-color: #393939;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-top .tooltipster-arrow-background {
-    border-top-color: #393939;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-bottom .tooltipster-arrow-border {
-    border-bottom-color: #999;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-left .tooltipster-arrow-border {
-    border-left-color: #999;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-right .tooltipster-arrow-border {
-    border-right-color: #999;
-}
-
-.dark-mode-on .tooltipster-sidetip.tooltipster-top .tooltipster-arrow-border {
-    border-top-color: #999;
 }

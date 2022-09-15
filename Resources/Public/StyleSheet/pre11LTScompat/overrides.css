@@ -19,3 +19,7 @@ html {
 .me-auto {
     margin-right: auto !important;
 }
+
+.t3-page-ce-wrapper {
+    padding: 1em;
+}
