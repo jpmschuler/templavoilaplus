@@ -188,7 +188,7 @@ class ProcessingService
             $usedElements[$table][$row['uid']]['count'] = 1;
         }
         $usedElements[$table][$row['uid']]['parentPointers'][] = $parentPointerString;
-        
+
         $node = [
             'raw' => [
                 'entity' => $row,
