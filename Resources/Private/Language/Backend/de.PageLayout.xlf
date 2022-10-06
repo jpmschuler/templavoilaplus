@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns:t3="http://typo3.org/schemas/xliff" xmlns="urn:oasis:names:tc:xliff:document:1.2">
-    <file source-language="en" target-language="de" original="" datatype="plaintext" date="2022-09-01T00:04:54+02:00">
+    <file source-language="en" target-language="de" original="" datatype="plaintext" date="2022-10-06T14:19:30+02:00">
         <body>
             <trans-unit id="mlang_tabs_tab" resname="mlang_tabs_tab">
                 <source>Page</source>
                 <target>Seite</target>
+            </trans-unit>
+            <trans-unit id="mlang_labels_tabdescr" resname="mlang_labels_tabdescr">
+                <source>This module allows you to create and edit webpages. It provides a template selector and management for different languages. This page module is part of the extension &#34;TemplaVoilà Plus&#34;.</source>
+                <target>Dieses Modul erlaubt die Erstellung und Bearbeitung von Seiten. Es erlaubt das Template auszuwählen und unterstützt verschiedene Sprachen. Dieses Seitenmodul ist Teil der Erweiterung &#34;TemplaVoilà Plus&#34;.</target>
             </trans-unit>
             <trans-unit id="mlang_labels_tablabel" resname="mlang_labels_tablabel">
                 <source>Create and edit pages</source>
@@ -131,7 +135,7 @@
                 <target>Lokalisierungen</target>
             </trans-unit>
             <trans-unit id="createCopyForTranslation" resname="createCopyForTranslation">
-                <source>Create a copy for translation</source>
+                <source>Create a copy for translation &#34;%s (%s)&#34;</source>
                 <target>Eine Kopie für die Übersetzung erzeugen</target>
             </trans-unit>
             <trans-unit id="newContentElementWizard.fce" resname="newContentElementWizard.fce">
