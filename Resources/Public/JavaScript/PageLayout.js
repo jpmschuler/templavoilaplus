@@ -727,6 +727,9 @@ define([
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
                 PageLayout.showError(items);
+                require(['TYPO3/CMS/Backend/Notification'], function(Notification) {
+                  Notification.error('Templavoilà! Plus Error', XMLHttpRequest.responseJSON.error);
+                });
             }
         });
     }
