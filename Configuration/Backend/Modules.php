@@ -2,9 +2,6 @@
 
 use Tvp\TemplaVoilaPlus\Controller\Backend\PageLayoutController;
 
-/**
- * Definitions for modules provided by EXT:backend
- */
 return [
     'web_layout' => [
     ],

@@ -3,7 +3,7 @@
 $myIcons = [];
 
 $iconsBitmap = [
-    'paste' =>  'EXT:templavoilaplus/Resources/Public/Icon/clip_pasteafter.gif',
+    'paste' => 'EXT:templavoilaplus/Resources/Public/Icon/clip_pasteafter.gif',
     'pasteSubRef' => 'EXT:templavoilaplus/Resources/Public/Icon/clip_pastesubref.gif',
     'makelocalcopy' => 'EXT:templavoilaplus/Resources/Public/Icon/makelocalcopy.gif',
     'clip_ref' => 'EXT:templavoilaplus/Resources/Public/Icon/clip_ref.gif',
