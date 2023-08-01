@@ -66,8 +66,6 @@ class RegisterFormEngine
             [
                 \TYPO3\CMS\Backend\Form\FormDataProvider\TcaFlexProcess::class
                     => \Tvp\TemplaVoilaPlus\Form\FormDataProvider\TcaFlexProcess::class,
-                \TYPO3\CMS\Backend\Form\FormDataProvider\TcaFlexFetch::class
-                    => \Tvp\TemplaVoilaPlus\Form\FormDataProvider\TcaFlexFetch::class,
                 \TYPO3\CMS\Backend\Form\FormDataProvider\TcaFlexPrepare::class
                     => \Tvp\TemplaVoilaPlus\Form\FormDataProvider\TcaFlexPrepare::class,
             ]
