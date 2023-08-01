@@ -26,6 +26,7 @@ use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Http\ForwardResponse;
+use TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException;
 
 /**
  * Controller to migrate/update from TV+ 7 to TV+ 8
@@ -1674,14 +1675,11 @@ class TemplaVoilaPlus8Controller extends AbstractUpdateController
         // If we come from ServerMigration to step5 the extension is already installed
         if (!$extensionAlreadyInstalled) {
             // Register extensions
-            /** @var \TYPO3\CMS\Extbase\Object\ObjectManager */
-            $objectManager = GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\Object\ObjectManager::class);
-            /** @var \TYPO3\CMS\Extensionmanager\Utility\InstallUtility */
-            $installUtility = $objectManager->get(\TYPO3\CMS\Extensionmanager\Utility\InstallUtility::class);
+            $installUtility = GeneralUtility::makeInstance(\TYPO3\CMS\Extensionmanager\Utility\InstallUtility::class);
 
             try {
                 $installUtility->install($selection);
-            } catch (\UnexpectedValueException | UnknownPackageException $e) {
+            } catch (\UnexpectedValueException | UnknownPackageException | ExtensionManagerException $e) {
                 $errors[] = 'Error while installing Extension. Please do this by your own. Original message from extension manager is: "' . $e->getMessage() . '"';
             }
         }
