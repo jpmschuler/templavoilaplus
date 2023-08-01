@@ -119,14 +119,14 @@ class Typo3Lts9Update implements UpgradeWizardInterface
             if (
                 !empty($row['tx_templavoilaplus_ds'])
                 && !isset($toFix[$row['tx_templavoilaplus_ds']])
-                && !StringUtility::beginsWith($row['tx_templavoilaplus_ds'], 'FILE:')
+                && !str_starts_with($row['tx_templavoilaplus_ds'], 'FILE:')
             ) {
                 $toFix[$row['tx_templavoilaplus_ds']] = 'FILE:' . $row['tx_templavoilaplus_ds'];
             }
             if (
                 !empty($row['tx_templavoilaplus_next_ds'])
                 && !isset($toFix[$row['tx_templavoilaplus_next_ds']])
-                && !StringUtility::beginsWith($row['tx_templavoilaplus_next_ds'], 'FILE:')
+                && !str_starts_with($row['tx_templavoilaplus_next_ds'], 'FILE:')
             ) {
                 $toFix[$row['tx_templavoilaplus_next_ds']] = 'FILE:' . $row['tx_templavoilaplus_next_ds'];
             }
@@ -177,7 +177,7 @@ class Typo3Lts9Update implements UpgradeWizardInterface
             if (
                 !empty($row['tx_templavoilaplus_ds'])
                 && !isset($toFix[$row['tx_templavoilaplus_ds']])
-                && !StringUtility::beginsWith($row['tx_templavoilaplus_ds'], 'FILE:')
+                && !str_starts_with($row['tx_templavoilaplus_ds'], 'FILE:')
             ) {
                 $toFix[$row['tx_templavoilaplus_ds']] = 'FILE:' . $row['tx_templavoilaplus_ds'];
             }
