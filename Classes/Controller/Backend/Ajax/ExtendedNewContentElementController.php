@@ -3,6 +3,7 @@
 namespace Tvp\TemplaVoilaPlus\Controller\Backend\Ajax;
 
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Backend\Attribute\Controller;
 use TYPO3\CMS\Backend\Wizard\NewContentElementWizardHookInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use Psr\EventDispatcher\EventDispatcherInterface;
