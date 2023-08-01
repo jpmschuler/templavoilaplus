@@ -71,7 +71,7 @@ class AbstractUpdateController extends ActionController
         );
     }
 
-    protected function initializeView(\TYPO3\CMS\Extbase\Mvc\View\ViewInterface $view)
+    protected function initializeView($view)
     {
         if ($this->view->getModuleTemplate()) {
             $this->view->getModuleTemplate()->getDocHeaderComponent()->disable();
