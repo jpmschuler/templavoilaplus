@@ -878,4 +878,17 @@ class PageLayoutController extends ActionController
 
         $this->getFlashMessageQueue('TVP')->enqueue($flashMessage);
     }
+
+    protected function getViewProperty($extbaseFrameworkConfiguration, $setting)
+    {
+        $values = [];
+        if (
+            !empty($extbaseFrameworkConfiguration['view'][$setting])
+            && is_array($extbaseFrameworkConfiguration['view'][$setting])
+        ) {
+            $values = $extbaseFrameworkConfiguration['view'][$setting];
+        }
+
+        return $values;
+    }
 }
