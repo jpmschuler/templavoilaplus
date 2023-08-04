@@ -12,8 +12,6 @@ use Tvp\TemplaVoilaPlus\Controller\Backend\ControlCenter\TemplatesController;
 use Tvp\TemplaVoilaPlus\Controller\Backend\ControlCenter\UpdateController;
 
 return [
-    'web_layout' => [
-    ],
     'web_TemplaVoilaPlusLayout' => [
         'parent' => 'web',
         'position' => ['top'],
