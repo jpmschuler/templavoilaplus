@@ -69,9 +69,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['move
     = \Tvp\TemplaVoilaPlus\Service\DataHandling\DataHandler::class;
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['recordEditAccessInternals']['templavoilaplus']
     = \Tvp\TemplaVoilaPlus\Service\UserFunc\Access::class . '->recordEditAccessInternals';
-// Hook after ext_tables run to do all FormHandler registering things
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['GLOBAL']['extTablesInclusion-PostProcessing']['templavoilaplus']
-    = \Tvp\TemplaVoilaPlus\Hooks\TableConfigurationPostProcessingHook::class;
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/backend.php']['constructPostProcess']['templavoilaplus']
     = \Tvp\TemplaVoilaPlus\Hooks\BackendControllerHook::class . '->addInlineSettings';
 
