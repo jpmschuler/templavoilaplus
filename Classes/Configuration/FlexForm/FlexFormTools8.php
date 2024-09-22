@@ -28,6 +28,7 @@ use TYPO3\CMS\Core\Configuration\FlexForm\Exception\InvalidSinglePointerFieldExc
 use TYPO3\CMS\Core\Configuration\FlexForm\Exception\InvalidTcaException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 
@@ -69,8 +70,12 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
      * @return string Identifier string
      * @throws \RuntimeException If TCA is misconfigured
      */
-    public function getDataStructureIdentifier(array $fieldTca, string $tableName, string $fieldName, array $row): string
-    {
+    public function getDataStructureIdentifier(
+        array $fieldTca,
+        string $tableName,
+        string $fieldName,
+        array $row,
+    ): string {
         // @TODO See https://forge.typo3.org/issues/79101
         // Needed for C&P
         // if there is a solution we can adapt it accordingly
@@ -192,8 +197,12 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
      * @throws InvalidPointerFieldValueException
      * @throws InvalidTcaException
      */
-    protected function getDataStructureIdentifierFromRecord(array $fieldTca, string $tableName, string $fieldName, array $row): array
-    {
+    protected function getDataStructureIdentifierFromRecord(
+        array $fieldTca,
+        string $tableName,
+        string $fieldName,
+        array $row,
+    ): array {
         $finalPointerFieldName = $fieldTca['config']['ds_pointerField'];
         $pointerFieldName = $finalPointerFieldName;
         if (!array_key_exists($pointerFieldName, $row)) {
@@ -211,20 +220,24 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
             while (!$pointerValue) {
                 $uidOfHandle = $row['uid'] ?? 'new_' . $row['t3_origuid'];
                 $handledUids[$uidOfHandle] = 1;
-                $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($tableName);
-                $queryBuilder->getRestrictions()
+                $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
+                    $tableName,
+                );
+                $queryBuilder
+                    ->getRestrictions()
                     ->removeAll()
                     ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
                 $queryBuilder->select('uid', $parentFieldName, $pointerFieldName);
                 if (!empty($pointerSubFieldName)) {
                     $queryBuilder->addSelect($pointerSubFieldName);
                 }
-                $queryStatement = $queryBuilder->from($tableName)
+                $queryStatement = $queryBuilder
+                    ->from($tableName)
                     ->where(
                         $queryBuilder->expr()->eq(
                             'uid',
-                            $queryBuilder->createNamedParameter($row[$parentFieldName], \PDO::PARAM_INT)
-                        )
+                            $queryBuilder->createNamedParameter($row[$parentFieldName], \PDO::PARAM_INT),
+                        ),
                     )
                     ->execute();
                 $rowCount = $queryBuilder
@@ -236,7 +249,7 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
                         'The data structure for field "' . $fieldName . '" in table "' . $tableName . '" has to be looked up'
                         . ' in field "' . $pointerFieldName . '". That field had no valid value, so a lookup in parent record'
                         . ' with uid "' . $row[$parentFieldName] . '" was done. However, this row does not exist or was deleted.',
-                        1463833794
+                        1463833794,
                     );
                 }
                 $row = $queryStatement->fetch();
@@ -246,7 +259,7 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
                         'The data structure for field "' . $fieldName . '" in table "' . $tableName . '" has to be looked up'
                         . ' in field "' . $pointerFieldName . '". That field had no valid value, so a lookup in parent record'
                         . ' with uid "' . $row[$parentFieldName] . '" was done. A loop of records was detected, the tree is broken.',
-                        1464110956
+                        1464110956,
                     );
                 }
                 BackendUtility::workspaceOL($tableName, $row);
@@ -265,7 +278,7 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
                         . ' in field "' . $pointerFieldName . '". That field had no valid value, so a lookup in parent record'
                         . ' with uid "' . $row[$parentFieldName] . '" was done. Root node with uid "' . $row['uid'] . '"'
                         . ' was fetched and still no valid pointer field value was found.',
-                        1464112555
+                        1464112555,
                     );
                 }
             }
@@ -275,7 +288,7 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
             throw new InvalidPointerFieldValueException(
                 'No data structure for field "' . $fieldName . '" in table "' . $tableName . '" found, no "ds" array'
                 . ' configured and data structure could be found by resolving parents. This is probably a TCA misconfiguration.',
-                1464114011
+                1464114011,
             );
         }
 
@@ -293,7 +306,7 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
                 throw new InvalidTcaException(
                     'Invalid data structure pointer for field "' . $fieldName . '" in table "' . $tableName . '", the value'
                     . 'resolved to "' . $pointerValue . '", . which is an integer, so "ds_tableField" must be configured',
-                    1464115639
+                    1464115639,
                 );
             }
             if (substr_count($fieldTca['config']['ds_tableField'], ':') !== 1) {
@@ -301,10 +314,13 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
                 throw new InvalidTcaException(
                     'Invalid TCA configuration for field "' . $fieldName . '" in table "' . $tableName . '". The setting'
                     . '"ds_tableField" must be of the form "tableName:fieldName"',
-                    1464116002
+                    1464116002,
                 );
             }
-            [$foreignTableName, $foreignFieldName] = GeneralUtility::trimExplode(':', $fieldTca['config']['ds_tableField']);
+            [$foreignTableName, $foreignFieldName] = GeneralUtility::trimExplode(
+                ':',
+                $fieldTca['config']['ds_tableField'],
+            );
             $dataStructureIdentifier = [
                 'type' => $pointerType,
                 'tableName' => $foreignTableName,
@@ -354,12 +370,12 @@ class FlexFormTools8 extends \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTool
     {
         // phpcs:enable
         // Just setting value in our own result array, basically replicating the structure:
-        $pObj->setArrayValueByPath($path, $this->cleanFlexFormXML, $data);
+        ArrayUtility::setValueByPath($this->cleanFlexFormXML, $path, $data);
         // Looking if an "extension" called ".vDEFbase" is found and if so, accept that too:
         if ($GLOBALS['TYPO3_CONF_VARS']['BE']['flexFormXMLincludeDiffBase']) {
-            $vDEFbase = $pObj->getArrayValueByPath($path . '.vDEFbase', $pObj->traverseFlexFormXMLData_Data);
+            $vDEFbase = ArrayUtility::setValueByPath($this->traverseFlexFormXMLData_Data, $path . '.vDEFbase', null);
             if (isset($vDEFbase)) {
-                $pObj->setArrayValueByPath($path . '.vDEFbase', $this->cleanFlexFormXML, $vDEFbase);
+                $vDEFbase = ArrayUtility::setValueByPath($this->cleanFlexFormXML, $path . '.vDEFbase', $vDEFbase);
             }
         }
     }
