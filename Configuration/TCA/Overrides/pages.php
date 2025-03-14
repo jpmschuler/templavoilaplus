@@ -53,13 +53,13 @@ $tempColumns = [
     'pages',
     'tx_templavoilaplus_map',
     '',
-    'replace:backend_layout'
+    'after:backend_layout'
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
     'pages',
     'tx_templavoilaplus_next_map',
     '',
-    'replace:backend_layout_next_level'
+    'after:backend_layout_next_level'
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
