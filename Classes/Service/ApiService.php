@@ -76,7 +76,11 @@ class ApiService
     {
         // phpcs:enable
         $dummyArr = [];
-        $flexformPointersArr = $this->flexform_getFlexformPointersToSubElementsRecursively('pages', $pageUid, $dummyArr);
+        $flexformPointersArr = $this->flexform_getFlexformPointersToSubElementsRecursively(
+            'pages',
+            $pageUid,
+            $dummyArr,
+        );
 
         $resultPointersArr = [];
         if (is_array($flexformPointersArr)) {
@@ -102,13 +106,21 @@ class ApiService
      */
     // phpcs:disable Generic.Metrics.NestingLevel
     // phpcs:disable PSR1.Methods.CamelCapsMethodName
-    public function flexform_getFlexformPointersToSubElementsRecursively($table, $uid, &$flexformPointers, $recursionDepth = 0)
-    {
+    public function flexform_getFlexformPointersToSubElementsRecursively(
+        $table,
+        $uid,
+        &$flexformPointers,
+        $recursionDepth = 0,
+    ) {
         // phpcs:enable
         if (!is_array($flexformPointers)) {
             $flexformPointers = [];
         }
-        $parentRecord = BackendUtility::getRecordWSOL($table, $uid, 'uid,pid,tx_templavoilaplus_flex,tx_templavoilaplus_map');
+        $parentRecord = BackendUtility::getRecordWSOL(
+            $table,
+            $uid,
+            'uid,pid,tx_templavoilaplus_flex,tx_templavoilaplus_map',
+        );
 
         if ($parentRecord === null) {
             return $flexformPointers;
@@ -131,7 +143,7 @@ class ApiService
                                             || (
                                                 ($fieldDS['config']['allowed'] ?? '') === 'tt_content'
                                                 && ($fieldDS['config']['internal_type'] ?? '') === 'db'
-                                             )
+                                            )
                                         ) {
                                             $valueItems = GeneralUtility::intExplode(',', $value);
                                             if (is_array($valueItems)) {
@@ -143,13 +155,19 @@ class ApiService
                                                             'uid' => $uid,
                                                             'sheet' => $sheetKey,
                                                             'sLang' => $languageKey,
-                                                            'field' => $fieldName, /** @TODO What is with sections/arrays? */
+                                                            'field' => $fieldName,
+                                                            /** @TODO What is with sections/arrays? */
                                                             'vLang' => $valueName,
                                                             'position' => $position,
                                                             'targetCheckUid' => $subElementUid,
                                                         ];
                                                         if ($recursionDepth < 100) {
-                                                            $this->flexform_getFlexformPointersToSubElementsRecursively('tt_content', $subElementUid, $flexformPointers, $recursionDepth + 1);
+                                                            $this->flexform_getFlexformPointersToSubElementsRecursively(
+                                                                'tt_content',
+                                                                $subElementUid,
+                                                                $flexformPointers,
+                                                                $recursionDepth + 1,
+                                                            );
                                                         }
                                                         $position++;
                                                     }
@@ -175,7 +193,6 @@ class ApiService
      ******************************************************/
 
 
-
     /******************************************************
      *
      * Data structure helper functions (public)
@@ -195,7 +212,8 @@ class ApiService
      * @param int $contextPageUid The (current) page uid, used to determine which page datastructure is selected
      * @param int $columnPosition Column number to search a field for
      *
-     * @return mixed Either the field name relating to the given column number or FALSE if all fall back methods failed and no suitable field could be found.
+     * @return mixed Either the field name relating to the given column number or FALSE if all fall back methods failed
+     *     and no suitable field could be found.
      */
     // phpcs:disable PSR1.Methods.CamelCapsMethodName
     public function ds_getFieldNameByColumnPosition($contextPageUid, $columnPosition)
@@ -224,7 +242,9 @@ class ApiService
                                     $columnsAndFieldNamesArr[$columnNumber] = $fieldName;
                                 }
                             }
-                            if ($fieldConfiguration['tx_templavoilaplus']['eType'] == 'ce' && !isset($fieldNameOfFirstCEField)) {
+                            if (($fieldConfiguration['tx_templavoilaplus']['eType'] ?? false)
+                                && $fieldConfiguration['tx_templavoilaplus']['eType'] == 'ce'
+                                && !isset($fieldNameOfFirstCEField)) {
                                 $fieldNameOfFirstCEField = $fieldName;
                             }
                         }
@@ -284,8 +304,8 @@ class ApiService
     }
 
     /**
-     * Returns the data structure for a flexform field ("tx_templavoilaplus_flex") from $table (by using $row). The DS will
-     * be expanded, ie. you can be sure that it is structured by sheets even if only one sheet exists.
+     * Returns the data structure for a flexform field ("tx_templavoilaplus_flex") from $table (by using $row). The DS
+     * will be expanded, ie. you can be sure that it is structured by sheets even if only one sheet exists.
      *
      * @param string $table The table name, usually "pages" or "tt_content"
      * @param array $row The data row (used to get DS if DS is dependent on the data in the record)
@@ -303,7 +323,7 @@ class ApiService
             $GLOBALS['TCA'][$table]['columns']['tx_templavoilaplus_flex'],
             $table,
             'tx_templavoilaplus_flex',
-            $row
+            $row,
         );
         $dataStructureArr = $flexFormTools->parseDataStructureByIdentifier($dataStructureIdentifier);
         $expandedDataStructureArr = $dataStructureArr['sheets'];

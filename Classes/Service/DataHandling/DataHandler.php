@@ -211,7 +211,7 @@ class DataHandler
             $uid,
             $sourceRecordBeforeMove['pid']
         );
-        $sourceFlexformPointer = $sourceFlexformPointersArr[0];
+        $sourceFlexformPointer = $sourceFlexformPointersArr[0] ?? null;
 
         $mainContentAreaFieldName = $templaVoilaAPI->ds_getFieldNameByColumnPosition($destPid, 0);
         if ($mainContentAreaFieldName !== false) {
