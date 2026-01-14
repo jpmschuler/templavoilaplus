@@ -19,9 +19,9 @@ namespace Tvp\TemplaVoilaPlus\Handler\Mapping;
 
 use Tvp\TemplaVoilaPlus\Domain\Model\Configuration\MappingConfiguration;
 use Tvp\TemplaVoilaPlus\Domain\Repository\Localization\LocalizationRepository;
+use Tvp\TemplaVoilaPlus\TypoScript\Parser\TypoScriptParser;
 use Tvp\TemplaVoilaPlus\Utility\RecordFalUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\TypoScript\Parser\TypoScriptParser;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -78,7 +78,7 @@ class DefaultMappingHandler
                 }
                 break;
             case 'typoscriptObjectPath':
-                [$name, $conf] = $this->getTypoScriptParser()->getVal($instructions['dataPath'], $GLOBALS['TSFE']->tmpl->setup);
+                [$name, $conf] = $this->getTypoScriptParser()->getVal($instructions['dataPath'], $GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.typoscript')->getSetupArray());
                 $processedValue = $this->getContentObjectRenderer($flexformData, $processedValue, $table, $row)->cObjGetSingle($name, $conf, 'TemplaVoila_ProcObjPath--' . str_replace('.', '*', $instructions['dataPath']) . '.');
                 break;
             default:
@@ -137,8 +137,8 @@ class DefaultMappingHandler
 
         // Copy current global TypoScript configuration except numerical objects:
         /** @TODO On every value which gets processed? Not really? */
-        if (is_array($GLOBALS['TSFE']->tmpl->setup)) {
-            foreach ($GLOBALS['TSFE']->tmpl->setup as $tsObjectKey => $tsObjectValue) {
+        if (is_array($GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.typoscript')->getSetupArray())) {
+            foreach ($GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.typoscript')->getSetupArray() as $tsObjectKey => $tsObjectValue) {
                 if ($tsObjectKey !== (int)$tsObjectKey) {
                     $tsparserObj->setup[$tsObjectKey] = $tsObjectValue;
                 }
