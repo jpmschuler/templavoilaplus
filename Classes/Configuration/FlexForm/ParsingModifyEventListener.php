@@ -66,6 +66,12 @@ class ParsingModifyEventListener
                 $handledUids[$uidOfHandle] = 1;
 
                 $parentUid = (int) $row[$parentFieldName];
+                if ($parentUid < 0 && $tableName === "pages") {
+                    // on list module record creation a value of "-<uid>" might be supplied to indicate "before sibling <uid>"
+                    // however in context of pages this doesn't make sense to identify at all: the DS/map is inherited anyways,
+                    // so just break;
+                    break;
+                }
                 if ($parentUid === 0) {
                     // We are on TreeRootElement => Leave
                     $pointerValue = '';
