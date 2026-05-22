@@ -16,8 +16,6 @@ use Tvp\TemplaVoilaPlus\Controller\Backend\ControlCenter\Update\DataStructureV12
 use Tvp\TemplaVoilaPlus\Controller\Backend\ControlCenter\Update\DataStructureV13Controller;
 
 return [
-    'web_layout' => [
-    ],
     'web_TemplaVoilaPlusLayout' => [
         'parent' => 'web',
         'position' => ['top'],
@@ -36,7 +34,7 @@ return [
             'language' => 0,
             'showHidden' => true,
         ],
-        'aliases' => ['web_layout'],
+        'aliases' => ['web_layout2'],
     ],
     'web_TemplaVoilaPlusControlCenter' => [
         'parent' => 'tools',
