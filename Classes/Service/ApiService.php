@@ -217,7 +217,7 @@ class ApiService
             foreach ($dataStructureArr as $sheetDataStructureArr) {
                 if (is_array($sheetDataStructureArr['ROOT']['el'])) {
                     foreach ($sheetDataStructureArr['ROOT']['el'] as $fieldName => $fieldConfiguration) {
-                        if (is_array($fieldConfiguration)) {
+                        if (is_array($fieldConfiguration) && isset($fieldConfiguration['tx_templavoilaplus'])) {
                             if (isset($fieldConfiguration['tx_templavoilaplus']['oldStyleColumnNumber'])) {
                                 $columnNumber = $fieldConfiguration['tx_templavoilaplus']['oldStyleColumnNumber'];
                                 if (!isset($columnsAndFieldNamesArr[$columnNumber])) {
